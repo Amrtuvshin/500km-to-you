@@ -124,125 +124,154 @@ function stopMusic() { musicPlaying = false; if (musicInterval) clearInterval(mu
 function toggleMusic() { if (musicPlaying) stopMusic(); else startMusic(); }
 
 // ---- PIXEL ART CHARACTER SYSTEM ----
-function drawPixel(x, y, w, h, color) {
-  ctx.fillStyle = color;
-  ctx.fillRect(Math.round(x), Math.round(y), w, h);
+// ---- 16/32-BIT SPRITE ENGINE ----
+function drawSprite(cx, cy, scale, rows, palette, flip) {
+  const s = scale;
+  const h = rows.length;
+  const w = rows[0].length;
+  const x0 = Math.round(cx - (w * s) / 2);
+  const y0 = Math.round(cy - h * s);
+  for (let r = 0; r < h; r++) {
+    for (let c = 0; c < w; c++) {
+      const col = flip ? w - 1 - c : c;
+      const color = palette[rows[r][col]];
+      if (!color) continue;
+      ctx.fillStyle = color;
+      ctx.fillRect(x0 + c * s, y0 + r * s, s + 0.5, s + 0.5);
+    }
+  }
 }
+
+// ---- AMARTUVSHIN SPRITE (Black puffer jacket, beige hoodie, dark hair) ----
+const A_PAL = {
+  '.':null,
+  'o':'#0e0e1a',   // outline
+  'H':'#1a1a35',   // hair dark
+  'h':'#2a2a50',   // hair highlight
+  'S':'#d4a574',   // skin
+  's':'#ba8a58',   // skin shadow
+  'L':'#e8c090',   // skin light
+  'W':'#e8e0d8',   // eye white
+  'e':'#0e0e1a',   // eye pupil
+  'm':'#b07050',   // mouth
+  'C':'#c8ac86',   // hoodie
+  'c':'#a89068',   // hoodie shadow
+  'B':'#d8c0a0',   // hoodie bright
+  'J':'#2c2c40',   // jacket
+  'j':'#1c1c2c',   // jacket dark
+  'K':'#3c3c58',   // jacket light/ridge
+  'P':'#1e1e2c',   // pants
+  'p':'#28283a',   // pants light
+  'G':'#24243a',   // shoe
+  'g':'#1a1a28',   // shoe dark
+  'F':'#d4a574',   // hand (skin)
+};
+
+const A_BODY = [
+  '....ooooo.....',
+  '...ohHHHho....',
+  '..oHHHhHHHo...',
+  '..oHHhHhHHHo..',
+  '..oHHHHHHHHo..',
+  '..oHsSSSSLHo..',
+  '..oSsSSSSLSo..',
+  '..oSWeSSWeSSo.',
+  '..oSSSSSSSSo..',
+  '...oSSmSmSo...',
+  '....oLSSLo....',
+  '.....oSSo.....',
+  '....oBCCBo....',
+  '...oCCBBCCo...',
+  '..oJJcCBCcJJo.',
+  '.oJJJcCBCcJJJo',
+  '.ojKJcCBCcJKjo',
+  'FoJJJcCBCcJJJo',
+  'FojKJJJJJJJKjo',
+  '.oJJJJJJJJJJJo',
+  '..ojKJJJJJKjo.',
+  '..oJJJJJJJJJo.',
+];
+const A_LEGS_STAND = [
+  '...opPPPPPpo..',
+  '....oPP.PPo...',
+  '....oGg.gGo...',
+];
+const A_LEGS_WALK = [
+  '..opPPo.oPPpo.',
+  '..oGGo...oGGo.',
+  '.ogGo.....oGgo',
+];
 
 function drawAmaraa(cx, cy, scale, frame, flip) {
-  const s = scale;
-  const f = flip ? -1 : 1;
-  const px = (dx, dy, w, h, c) => drawPixel(cx + dx*s*f - (flip ? w*s : 0), cy + dy*s, w*s, h*s, c);
-
-  // Hair
-  px(-3, -20, 6, 2, '#1a1a2e');
-  px(-4, -18, 8, 3, '#1a1a2e');
-  px(-4, -15, 2, 2, '#1a1a2e'); // side hair
-  px(2, -15, 2, 2, '#1a1a2e');
-
-  // Face
-  px(-3, -15, 6, 6, '#d4a574');
-  // Eyes
-  px(-2, -13, 1, 1, '#111');
-  px(1, -13, 1, 1, '#111');
-  // Mouth
-  px(-1, -11, 2, 1, '#c48860');
-
-  // Neck
-  px(-1, -9, 2, 1, '#d4a574');
-
-  // Hoodie collar
-  px(-2, -8, 4, 1, '#c4a882');
-
-  // Puffer jacket (round/puffy)
-  px(-5, -7, 10, 2, '#2a2a3a');
-  px(-5, -5, 3, 5, '#2a2a3a'); // left jacket
-  px(2, -5, 3, 5, '#2a2a3a');  // right jacket
-  px(-2, -5, 4, 5, '#c4a882');  // hoodie center visible
-  px(-5, 0, 10, 1, '#2a2a3a');  // jacket bottom
-
-  // Puffer jacket ridges (detail)
-  px(-5, -5, 10, 1, '#333345');
-  px(-5, -3, 10, 1, '#333345');
-
-  // Arms
-  const armSwing = frame % 2 === 0 ? 0 : 1;
-  px(-6, -6 + armSwing, 1, 4, '#2a2a3a');
-  px(5, -6 - armSwing, 1, 4, '#2a2a3a');
-  // Hands
-  px(-6, -2 + armSwing, 1, 1, '#d4a574');
-  px(5, -2 - armSwing, 1, 1, '#d4a574');
-
-  // Legs
-  if (frame % 4 < 2) {
-    px(-2, 1, 2, 4, '#1a1a2a');
-    px(1, 1, 2, 4, '#1a1a2a');
-    px(-2, 5, 2, 1, '#333');
-    px(1, 5, 2, 1, '#333');
-  } else {
-    px(-3, 1, 2, 4, '#1a1a2a');
-    px(2, 1, 2, 4, '#1a1a2a');
-    px(-3, 5, 2, 1, '#333');
-    px(2, 5, 2, 1, '#333');
-  }
+  const walk = Math.floor(frame) % 4 >= 2;
+  const rows = [...A_BODY, ...(walk ? A_LEGS_WALK : A_LEGS_STAND)];
+  drawSprite(cx, cy, scale, rows, A_PAL, flip);
 }
 
+// ---- MAAGII SPRITE (Brown hair long, duffle coat, pretty smile) ----
+const M_PAL = {
+  '.':null,
+  'o':'#0e0e1a',   // outline
+  'H':'#7a5832',   // hair dark
+  'h':'#9c7a54',   // hair light
+  'R':'#6a4822',   // hair darker
+  'S':'#eaC8a4',   // skin
+  's':'#d4ae88',   // skin shadow
+  'L':'#f4d8b8',   // skin highlight
+  'B':'#eca0a0',   // blush
+  'W':'#f0e8e0',   // eye white
+  'e':'#1a1008',   // eye pupil
+  'm':'#d4a080',   // mouth/smile
+  'C':'#5c3a1e',   // coat
+  'c':'#4a2c12',   // coat dark
+  'K':'#6e4e30',   // coat light
+  'I':'#f0e6d3',   // inner white
+  'T':'#c4a882',   // toggle
+  'P':'#2a2a3c',   // pants
+  'p':'#343448',   // pants light
+  'G':'#4a3020',   // shoe
+  'g':'#382418',   // shoe dark
+  'D':'#eaC8a4',   // hand skin
+};
+
+const M_BODY = [
+  '....ooooo.....',
+  '...oHhHhHo....',
+  '..oHHhHhHHHo..',
+  '..oHHHHHHHHo..',
+  '..oHHHHHHHHo..',
+  '..oHsSSSLsHo..',
+  '..oBSSSSSsBo..',
+  '..oSWeSSWeSo..',
+  '..oSSSSSSSso..',
+  '...oSLmSmLo...',
+  '..oHoLSSLsHo..',
+  '..oH.oSSo.Ho..',
+  '..oHoCKKCoHo..',
+  '.oHoKCIICKoHo.',
+  '.oHoCCIICCoHo.',
+  'DoHocCTTCcoHoD',
+  'DoHoCCIICCoHo.',
+  '.oHocCCCCcoHo.',
+  '.oRoCKCCKCoRo.',
+  '..oRoKCCKoRo..',
+  '...oooCCooo...',
+];
+const M_LEGS_STAND = [
+  '....opPPpo....',
+  '....oPP.PPo...',
+  '....oGg.gGo...',
+];
+const M_LEGS_WALK = [
+  '...oPPo.oPPo..',
+  '..oGGo...oGGo.',
+  '.ogGo.....oGgo',
+];
+
 function drawMaagii(cx, cy, scale, frame, flip) {
-  const s = scale;
-  const f = flip ? -1 : 1;
-  const px = (dx, dy, w, h, c) => drawPixel(cx + dx*s*f - (flip ? w*s : 0), cy + dy*s, w*s, h*s, c);
-
-  // Hair top
-  px(-3, -19, 6, 2, '#8b6843');
-  px(-4, -17, 8, 3, '#8b6843');
-  // Long hair sides
-  px(-4, -14, 2, 8, '#8b6843');
-  px(2, -14, 2, 8, '#8b6843');
-
-  // Face
-  px(-3, -14, 6, 6, '#e8c4a0');
-  // Eyes
-  px(-2, -12, 1, 1, '#2a1a0a');
-  px(1, -12, 1, 1, '#2a1a0a');
-  // Blush
-  px(-3, -11, 1, 1, '#e8a0a0');
-  px(2, -11, 1, 1, '#e8a0a0');
-  // Smile
-  px(-1, -10, 2, 1, '#d4a080');
-
-  // Neck
-  px(-1, -8, 2, 1, '#e8c4a0');
-
-  // Brown coat
-  px(-4, -7, 8, 2, '#5c3a1e');
-  px(-4, -5, 8, 5, '#5c3a1e');
-  // Inner white shirt visible
-  px(-1, -7, 2, 4, '#f0e6d3');
-  // Coat details (toggles)
-  px(0, -6, 1, 1, '#c4a882');
-  px(0, -4, 1, 1, '#c4a882');
-
-  px(-4, 0, 8, 1, '#5c3a1e'); // coat bottom
-
-  // Arms
-  const armSwing = frame % 2 === 0 ? 0 : 1;
-  px(-5, -5 + armSwing, 1, 4, '#5c3a1e');
-  px(4, -5 - armSwing, 1, 4, '#5c3a1e');
-  px(-5, -1 + armSwing, 1, 1, '#e8c4a0');
-  px(4, -1 - armSwing, 1, 1, '#e8c4a0');
-
-  // Legs
-  if (frame % 4 < 2) {
-    px(-2, 1, 2, 3, '#2a2a3a');
-    px(1, 1, 2, 3, '#2a2a3a');
-    px(-2, 4, 2, 1, '#4a3020');
-    px(1, 4, 2, 1, '#4a3020');
-  } else {
-    px(-3, 1, 2, 3, '#2a2a3a');
-    px(2, 1, 2, 3, '#2a2a3a');
-    px(-3, 4, 2, 1, '#4a3020');
-    px(2, 4, 2, 1, '#4a3020');
-  }
+  const walk = Math.floor(frame) % 4 >= 2;
+  const rows = [...M_BODY, ...(walk ? M_LEGS_WALK : M_LEGS_STAND)];
+  drawSprite(cx, cy, scale, rows, M_PAL, flip);
 }
 
 // ---- ENVIRONMENT DRAWING ----
