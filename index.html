@@ -258,15 +258,15 @@ const M_BODY = [
   '...oSLmmLSo...',
   '..oHoLSSLoHo..',
   '..oH.oSSo.Ho..',
-  '..oHoTIIToHo..',
-  '.oHotTIITtoHo.',
-  '.oHotTIITtoHo.',
-  'DoHotTTTTtoHoD',
-  '.oHotTTTTtoHo.',
-  '.oRoJJKKJJoRo.',
-  '..oRojJKJjoRo.',
-  '..oRoJJKJoRo..',
-  '...oooPPooo...',
+  '..ohoTIITtoho.',
+  '...otTIITto...',
+  '...otTIITto...',
+  'D..otTTTTto..D',
+  '...otTTTTto...',
+  '...oJJKKJJo...',
+  '....ojJKJjo...',
+  '....oJJKJo....',
+  '.....oPPo.....',
 ];
 const M_LEGS_STAND = [
   '....oPP.PPo...',
@@ -383,57 +383,180 @@ function drawNightCity(t) {
 
 function drawFountain(t) {
   const w=GAME_W, h=GAME_H;
-  drawNightCity(t);
 
-  const fx=w/2, fy=h*.72;
+  // Night sky
+  const sky=ctx.createLinearGradient(0,0,0,h*.4);
+  sky.addColorStop(0,'#05051a'); sky.addColorStop(0.5,'#0a0a2a'); sky.addColorStop(1,'#10102e');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h*.4);
+  drawStars(t);
 
-  // Pool
-  ctx.fillStyle='#1a2a3a';
-  ctx.beginPath(); ctx.ellipse(fx,fy+2,14,4,0,0,Math.PI*2); ctx.fill();
-  const wg=ctx.createRadialGradient(fx,fy+1,1,fx,fy+1,13);
-  wg.addColorStop(0,'rgba(80,140,200,0.3)'); wg.addColorStop(1,'rgba(40,80,140,0.1)');
-  ctx.fillStyle=wg; ctx.beginPath(); ctx.ellipse(fx,fy+1,12,3,0,0,Math.PI*2); ctx.fill();
+  // ---- DEPARTMENT STORE BUILDING ----
+  const storeY=h*.18, storeH=h*.52;
+  // Main building facade
+  const facade=ctx.createLinearGradient(0,storeY,0,storeY+storeH);
+  facade.addColorStop(0,'#c8b8a0'); facade.addColorStop(.3,'#b8a890'); facade.addColorStop(1,'#a89878');
+  ctx.fillStyle=facade; ctx.fillRect(w*.08,storeY,w*.84,storeH);
 
-  // Pillar
-  ctx.fillStyle='#4a4a5a'; ctx.fillRect(fx-1,fy-9,2,10);
-  ctx.fillStyle='#5a5a6a'; ctx.fillRect(fx-2,fy-2,4,2);
-  ctx.fillStyle='#555568'; ctx.fillRect(fx-1,fy-10,2,1);
+  // Building top trim/cornice
+  ctx.fillStyle='#d0c0a8'; ctx.fillRect(w*.06,storeY-2,w*.88,3);
+  ctx.fillStyle='#e0d0b8'; ctx.fillRect(w*.07,storeY-3,w*.86,1);
 
-  // Water streams
-  for(let i=0;i<10;i++){
-    const angle=t*.003+i*0.63;
-    const spread=5+Math.sin(t*.002)*1;
+  // Large store windows (illuminated warm glow)
+  for(let i=0;i<5;i++){
+    const wx=w*.12+i*w*.155, wy=storeY+4, ww=w*.12, wh=storeH*.35;
+    // Window frame
+    ctx.fillStyle='#8a7a60'; ctx.fillRect(wx-1,wy-1,ww+2,wh+2);
+    // Window glass (warm lit interior)
+    const wg=ctx.createLinearGradient(wx,wy,wx,wy+wh);
+    wg.addColorStop(0,'#f8e8c0'); wg.addColorStop(.5,'#f0d8a0'); wg.addColorStop(1,'#e8c880');
+    ctx.fillStyle=wg; ctx.fillRect(wx,wy,ww,wh);
+    // Window cross bars
+    ctx.fillStyle='#9a8a70'; ctx.fillRect(wx+ww/2,wy,1,wh);
+    ctx.fillStyle='#9a8a70'; ctx.fillRect(wx,wy+wh/2,ww,1);
+    // Warm glow from window
+    const lg=ctx.createRadialGradient(wx+ww/2,wy+wh,2,wx+ww/2,wy+wh+8,20);
+    lg.addColorStop(0,'rgba(255,220,150,0.06)'); lg.addColorStop(1,'transparent');
+    ctx.fillStyle=lg; ctx.fillRect(wx-5,wy+wh,ww+10,20);
+  }
+
+  // Store awning (elegant)
+  ctx.fillStyle='#6a2030'; ctx.fillRect(w*.06,storeY+storeH*.45,w*.88,3);
+  ctx.fillStyle='#8a3040'; ctx.fillRect(w*.06,storeY+storeH*.45,w*.88,2);
+  // Awning stripes
+  for(let i=0;i<22;i++){
+    if(i%2===0) { ctx.fillStyle='rgba(0,0,0,0.08)'; ctx.fillRect(w*.06+i*(w*.88/22),storeY+storeH*.45,w*.88/44,3); }
+  }
+
+  // Lower store facade (darker, entrance area)
+  ctx.fillStyle='#907e68'; ctx.fillRect(w*.08,storeY+storeH*.48,w*.84,storeH*.52);
+
+  // Store entrance (grand double doors, center)
+  const dx=w*.4, dy=storeY+storeH*.5, dw=w*.2, dh=storeH*.48;
+  ctx.fillStyle='#5a4a30'; ctx.fillRect(dx-1,dy-1,dw+2,dh+2);
+  ctx.fillStyle='#f0e0c0'; ctx.fillRect(dx,dy,dw,dh); // glass doors
+  ctx.fillStyle='#c8a060'; ctx.fillRect(dx+dw/2,dy,1,dh); // center bar
+  // Door handles
+  ctx.fillStyle='#d4a040'; ctx.fillRect(dx+dw/2-2,dy+dh*.5,1,2);
+  ctx.fillStyle='#d4a040'; ctx.fillRect(dx+dw/2+1,dy+dh*.5,1,2);
+
+  // Store sign
+  ctx.fillStyle='rgba(255,220,150,0.12)';
+  ctx.fillRect(w*.3,storeY+storeH*.42,w*.4,2);
+
+  // Side display windows (lower level)
+  for(let side=0;side<2;side++){
+    const sx=side===0?w*.1:w*.65, sw=w*.22;
+    ctx.fillStyle='#6a5a40'; ctx.fillRect(sx-1,dy+2,sw+2,dh*.6);
+    const dg=ctx.createLinearGradient(sx,dy+3,sx,dy+dh*.5);
+    dg.addColorStop(0,'#f0e0b0'); dg.addColorStop(1,'#e0d0a0');
+    ctx.fillStyle=dg; ctx.fillRect(sx,dy+3,sw,dh*.55);
+    // Mannequin/display hint
+    ctx.fillStyle='rgba(150,100,80,0.15)'; ctx.fillRect(sx+sw*.3,dy+8,2,dh*.3);
+    ctx.fillStyle='rgba(200,100,100,0.12)'; ctx.fillRect(sx+sw*.6,dy+10,2,dh*.25);
+  }
+
+  // ---- GROUND / PLAZA ----
+  const gy=storeY+storeH;
+  // Elegant tiled plaza
+  const plz=ctx.createLinearGradient(0,gy,0,h);
+  plz.addColorStop(0,'#3a3530'); plz.addColorStop(.3,'#2a2520'); plz.addColorStop(1,'#1a1815');
+  ctx.fillStyle=plz; ctx.fillRect(0,gy,w,h-gy);
+
+  // Tile pattern
+  for(let ty=gy;ty<h;ty+=3){
+    for(let tx=0;tx<w;tx+=4){
+      const off=(ty-gy)/3%2===0?2:0;
+      ctx.fillStyle='rgba(60,55,48,0.15)';
+      ctx.fillRect(tx+off,ty,3,2);
+    }
+  }
+
+  // ---- FOUNTAIN ----
+  const fx=w/2, fy=gy+h*.1;
+
+  // Fountain base (circular stone)
+  ctx.fillStyle='#5a5550';
+  ctx.beginPath(); ctx.ellipse(fx,fy+3,18,5,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#4a4540';
+  ctx.beginPath(); ctx.ellipse(fx,fy+2,16,4,0,0,Math.PI*2); ctx.fill();
+  // Water in basin
+  const wb=ctx.createRadialGradient(fx,fy+1,1,fx,fy+1,14);
+  wb.addColorStop(0,'rgba(80,140,200,0.35)'); wb.addColorStop(1,'rgba(40,80,140,0.15)');
+  ctx.fillStyle=wb;
+  ctx.beginPath(); ctx.ellipse(fx,fy+1,14,3.5,0,0,Math.PI*2); ctx.fill();
+
+  // Fountain pillar (ornamental)
+  ctx.fillStyle='#6a6560'; ctx.fillRect(fx-2,fy-12,4,14);
+  ctx.fillStyle='#7a7570'; ctx.fillRect(fx-3,fy-2,6,2); // base ring
+  ctx.fillStyle='#7a7570'; ctx.fillRect(fx-2,fy-7,4,1); // mid ring
+  ctx.fillStyle='#8a8580'; ctx.fillRect(fx-1,fy-14,2,2); // top
+
+  // Water jets (animated)
+  for(let i=0;i<12;i++){
+    const angle=t*.003+i*0.52;
+    const spread=6+Math.sin(t*.002)*1.5;
     const px=fx+Math.sin(angle)*spread;
-    const py=fy-9+Math.abs(Math.sin(angle*1.5))*(-3)+((angle*5)%8);
-    const alpha=.3+Math.sin(t*.005+i)*.2;
-    ctx.fillStyle=`rgba(120,180,240,${alpha})`;
+    const py=fy-14+Math.abs(Math.sin(angle*1.3))*(-4)+((angle*4)%10);
+    const alpha=.25+Math.sin(t*.005+i)*.15;
+    ctx.fillStyle=`rgba(150,200,255,${alpha})`;
     ctx.fillRect(px|0,py|0,1,1);
   }
-  for(let i=0;i<8;i++){
-    const dx=fx+Math.sin(i*2.4)*8;
-    const dy=fy-4+((t*.08+i*17)%7);
-    ctx.fillStyle='rgba(150,200,255,0.4)';
+  // Falling water drops
+  for(let i=0;i<10;i++){
+    const dx=fx+Math.sin(i*2.1)*10;
+    const dy=fy-6+((t*.06+i*13)%9);
+    ctx.fillStyle='rgba(150,210,255,0.3)';
     ctx.fillRect(dx|0,dy|0,1,1);
   }
 
-  // Glow
-  const fg=ctx.createRadialGradient(fx,fy-4,1,fx,fy-4,24);
-  fg.addColorStop(0,'rgba(100,160,230,0.06)'); fg.addColorStop(1,'transparent');
-  ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(fx,fy-4,24,0,Math.PI*2); ctx.fill();
+  // Fountain glow
+  const fg=ctx.createRadialGradient(fx,fy-6,1,fx,fy-6,28);
+  fg.addColorStop(0,'rgba(100,170,240,0.06)'); fg.addColorStop(1,'transparent');
+  ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(fx,fy-6,28,0,Math.PI*2); ctx.fill();
 
-  // Decorative flower pots beside fountain
-  for(let side=-1;side<=1;side+=2){
-    const px=fx+side*24;
-    ctx.fillStyle='#3a2a1a'; ctx.fillRect(px-1,fy+1,3,2);
-    ctx.fillStyle='#2a5a1a'; ctx.fillRect(px-1,fy,3,1);
-    ctx.fillStyle='#e05080'; ctx.fillRect(px,fy-1,1,1);
+  // ---- LANDSCAPING ----
+  // Hedge rows along the store front
+  for(let i=0;i<6;i++){
+    const hx=w*.05+i*w*.17, hy=gy+1;
+    if(Math.abs(hx+3-fx)<20) continue; // skip near fountain
+    ctx.fillStyle='#1a3a12'; ctx.fillRect(hx,hy-1,5,2);
+    ctx.fillStyle='#2a4a1a'; ctx.fillRect(hx+1,hy-2,3,1);
+    // Small flowers on hedge
+    if(i%2===0) { ctx.fillStyle='#e06080'; ctx.fillRect(hx+1,hy-2,1,1); }
+    else { ctx.fillStyle='#f0d060'; ctx.fillRect(hx+2,hy-2,1,1); }
   }
 
-  // Ground path tiles
-  ctx.fillStyle='rgba(30,28,35,0.4)';
-  for(let i=0;i<8;i++){
-    ctx.fillRect(fx-20+i*5,fy+5,4,1);
-    ctx.fillRect(fx-18+i*5,fy+7,3,1);
+  // Potted plants flanking entrance
+  for(let side=-1;side<=1;side+=2){
+    const px=fx+side*30;
+    ctx.fillStyle='#5a4a3a'; ctx.fillRect(px-1,gy,3,2); // pot
+    ctx.fillStyle='#1a3a10'; ctx.fillRect(px-2,gy-2,5,2); // plant
+    ctx.fillStyle='#2a5a18'; ctx.fillRect(px-1,gy-3,3,1);
+    ctx.fillStyle='#3a6a20'; ctx.fillRect(px,gy-4,1,1);
+  }
+
+  // Lamp posts
+  for(let side=-1;side<=1;side+=2){
+    const lx=fx+side*50;
+    ctx.fillStyle='#3a3530'; ctx.fillRect(lx,gy-8,1,9);
+    ctx.fillStyle='#4a4540'; ctx.fillRect(lx-1,gy-9,3,1);
+    // Warm lamp glow
+    const llg=ctx.createRadialGradient(lx,gy-9,1,lx,gy-9,12);
+    llg.addColorStop(0,'rgba(255,220,150,0.08)'); llg.addColorStop(1,'transparent');
+    ctx.fillStyle=llg; ctx.fillRect(lx-12,gy-20,24,20);
+    ctx.fillStyle='rgba(255,200,100,0.5)'; ctx.fillRect(lx,gy-10,1,1);
+  }
+
+  // Flower beds at sides
+  for(let side=0;side<2;side++){
+    const bx=side===0?w*.02:w*.85, bw=w*.12;
+    ctx.fillStyle='#2a1a10'; ctx.fillRect(bx,gy+2,bw,3); // soil bed
+    for(let f=0;f<5;f++){
+      const fx2=bx+2+f*(bw/5);
+      ctx.fillStyle='#2a5a18'; ctx.fillRect(fx2,gy+1,2,1); // stems
+      const fc=['#e05080','#f0d060','#e08040','#d060a0','#f07070'][f];
+      ctx.fillStyle=fc; ctx.fillRect(fx2,gy,1,1); // flowers
+    }
   }
 }
 
