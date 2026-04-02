@@ -1579,6 +1579,93 @@
       ctx.fillStyle = fog; ctx.fillRect(0, h * .5, w, h * .3);
     }
 
+    function drawBedroom(t) {
+      const w=GAME_W, h=GAME_H;
+      // Dark room at night
+      const bg=ctx.createRadialGradient(w*.3,h*.4,10,w*.5,h*.5,w*.6);
+      bg.addColorStop(0,'#0a0810'); bg.addColorStop(.5,'#060508'); bg.addColorStop(1,'#030304');
+      ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+
+      // Wall
+      ctx.fillStyle='#0c0a10'; ctx.fillRect(0,0,w,h*.6);
+
+      // Window (right side, night)
+      const wx=w*.72, wy=h*.12, ww=28, wh=22;
+      ctx.fillStyle='#1a1a24'; ctx.fillRect(wx-1,wy-1,ww+2,wh+2);
+      const wsky=ctx.createLinearGradient(wx,wy,wx,wy+wh);
+      wsky.addColorStop(0,'#08082a'); wsky.addColorStop(1,'#0c0c30');
+      ctx.fillStyle=wsky; ctx.fillRect(wx,wy,ww,wh);
+      // Stars through window
+      for(let i=0;i<4;i++){
+        ctx.fillStyle=`rgba(200,200,255,${.2+Math.sin(t*.008+i)*.15})`;
+        ctx.fillRect(wx+3+((i*7)%22),wy+2+((i*5)%16),1,1);
+      }
+      // Window cross
+      ctx.fillStyle='#1a1a24'; ctx.fillRect(wx+ww/2,wy,1,wh); ctx.fillRect(wx,wy+wh/2,ww,1);
+      // Curtains
+      ctx.fillStyle='#12101a'; ctx.fillRect(wx-3,wy-2,3,wh+4);
+      ctx.fillStyle='#12101a'; ctx.fillRect(wx+ww,wy-2,3,wh+4);
+
+      // Faint moonlight
+      const moon=ctx.createRadialGradient(wx+ww/2,wy+wh,3,wx+ww/2,h*.5,w*.3);
+      moon.addColorStop(0,'rgba(60,70,120,0.04)'); moon.addColorStop(1,'transparent');
+      ctx.fillStyle=moon; ctx.fillRect(0,0,w,h);
+
+      // Floor
+      const fl=ctx.createLinearGradient(0,h*.6,0,h);
+      fl.addColorStop(0,'#0a0808'); fl.addColorStop(1,'#050404');
+      ctx.fillStyle=fl; ctx.fillRect(0,h*.6,w,h*.4);
+
+      // BED (large, center-left, Amaraa lying on it)
+      const bx=w*.08, by=h*.5, bw=w*.6, bh=h*.32;
+      // Bed frame
+      ctx.fillStyle='#2a1e14'; ctx.fillRect(bx,by+bh,bw,3); // bottom frame
+      ctx.fillStyle='#2a1e14'; ctx.fillRect(bx,by,3,bh+3); // headboard side
+      ctx.fillStyle='#1e1610'; ctx.fillRect(bx+bw-2,by+bh*.3,2,bh*.7+3); // foot board
+      // Headboard
+      ctx.fillStyle='#2a1e14'; ctx.fillRect(bx,by-4,6,bh+7);
+      ctx.fillStyle='#321e12'; ctx.fillRect(bx+1,by-2,4,bh+3);
+      // Mattress
+      ctx.fillStyle='#1a1520'; ctx.fillRect(bx+6,by+2,bw-8,bh-2);
+      // Sheet/blanket (dark, messy)
+      const sheet=ctx.createLinearGradient(bx+6,by+2,bx+6,by+bh);
+      sheet.addColorStop(0,'#18142a'); sheet.addColorStop(.4,'#1a1630'); sheet.addColorStop(1,'#141028');
+      ctx.fillStyle=sheet; ctx.fillRect(bx+6,by+4,bw-8,bh-6);
+      // Wrinkled sheet lines
+      ctx.fillStyle='rgba(30,25,50,0.4)';
+      ctx.fillRect(bx+20,by+8,bw*.3,0.5);
+      ctx.fillRect(bx+15,by+16,bw*.4,0.5);
+      ctx.fillRect(bx+25,by+24,bw*.25,0.5);
+      // Pillow
+      ctx.fillStyle='#20182e'; ctx.fillRect(bx+8,by+4,18,10);
+      ctx.fillStyle='#241c32'; ctx.fillRect(bx+9,by+5,16,8);
+
+      // Person shape lying on bed (silhouette under blanket)
+      ctx.fillStyle='rgba(25,20,40,0.6)';
+      ctx.fillRect(bx+26,by+6,bw*.35,bh*.4); // body mound
+      ctx.fillRect(bx+12,by+6,14,8); // head area on pillow
+
+      // Phone glow on face (lying in bed checking phone at 3am)
+      const phoneGlow=ctx.createRadialGradient(bx+22,by+8,1,bx+22,by+8,12);
+      phoneGlow.addColorStop(0,`rgba(150,180,255,${.04+Math.sin(t*.003)*.02})`);
+      phoneGlow.addColorStop(1,'transparent');
+      ctx.fillStyle=phoneGlow; ctx.fillRect(bx+10,by-2,24,20);
+      // Phone screen
+      ctx.fillStyle=`rgba(150,180,255,${.15+Math.sin(t*.003)*.05})`;
+      ctx.fillRect(bx+20,by+8,3,5);
+
+      // Nightstand
+      ctx.fillStyle='#1e1610'; ctx.fillRect(bx+bw+2,by+bh*.4,10,bh*.6+3);
+      ctx.fillStyle='#241a14'; ctx.fillRect(bx+bw+2,by+bh*.4,10,2);
+      // Clock on nightstand
+      ctx.fillStyle='rgba(255,80,80,0.4)';
+      ctx.font='3px monospace'; ctx.textAlign='left';
+      ctx.fillText('3:00',bx+bw+3,by+bh*.4);
+
+      // Empty water glass
+      ctx.fillStyle='rgba(100,120,150,0.1)'; ctx.fillRect(bx+bw+6,by+bh*.35,2,4);
+    }
+
     function drawDarkRoom(t) {
       const w = GAME_W, h = GAME_H;
       ctx.fillStyle = '#040406'; ctx.fillRect(0, 0, w, h);
@@ -1690,6 +1777,7 @@
       else if (bgMode === 'ger') drawGerInterior(bgTime);
       else if (bgMode === 'rain') drawRainScene(bgTime);
       else if (bgMode === 'darkroom') drawDarkRoom(bgTime);
+      else if (bgMode === 'bedroom') drawBedroom(bgTime);
       else if (bgMode === 'hearts') { drawStars(bgTime); drawHeartsBg(bgTime); }
       else if (bgMode === 'walk') drawWalkScene();
 
@@ -2260,12 +2348,11 @@
 
     // --- CH8: THE STRUGGLE ---
     scenes.push({
-      id: 'ch8', bg: 'darkroom', dialogues: [
+      id: 'ch8', bg: 'bedroom', dialogues: [
         { action: 'wait', duration: 3000 },
-        { action: 'addChar', char: { type: 'amaraa', x: GAME_W * 0.46, y: GAME_H * 0.72, scale: 2, frame: 0, speed: 0 } },
         { text: "You don't know what happens\nwhen I put down my phone.", speed: 30 },
         { text: "The {h}anxiety{/h} hits.\nMy chest tightens.\nI can't breathe.", speed: 28 },
-        { text: "I sit alone in my home\nin Ulaanbaatar.\nThe city is loud but I hear {h}nothing{/h}.", speed: 28 },
+        { text: "I sit alone in my home.\nThe city is loud\nbut I hear {h}nothing{/h}.", speed: 28 },
         { text: "I wake up at 3am\nreaching for you.\nBut the bed is {h}empty{/h}.", speed: 30 },
         { text: "I check my phone.\n{h}No messages.{/h}\nI don't even know where you are.", speed: 28 },
         { text: "So I open my laptop.\nAnd I {g}work{/g}.", speed: 40 },
@@ -2421,11 +2508,6 @@
       <img src="photos/graduation.jpg" alt="">
     </div>
     <p class="signature" style="opacity:0">With all my love,<br><br>— Amartuvshin —</p>
-    <p style="font-size:8px;color:#666;margin-top:30px;opacity:0">
-      Even an AI prompt engineer<br>
-      can't find the right prompt<br>
-      for how much I love you.
-    </p>
   </div>`;
         el.classList.add('active');
         spawnHearts(30);
