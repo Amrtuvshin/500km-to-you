@@ -1,1886 +1,2410 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>500km to You</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes glowPulse{0%,100%{box-shadow:0 0 20px rgba(229,49,112,.3)}50%{box-shadow:0 0 40px rgba(229,49,112,.7),0 0 60px rgba(229,49,112,.3)}}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-@keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.15)}30%{transform:scale(1)}45%{transform:scale(1.1)}}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes photoReveal{0%{clip-path:inset(50% 50% 50% 50%);opacity:0;filter:brightness(2)}30%{clip-path:inset(20% 20% 20% 20%);opacity:.7;filter:brightness(1.5)}100%{clip-path:inset(0% 0% 0% 0%);opacity:1;filter:brightness(1)}}
-@keyframes photoGlow{0%{box-shadow:0 0 20px rgba(229,49,112,.3),0 0 40px rgba(229,49,112,.1)}50%{box-shadow:0 0 30px rgba(229,49,112,.6),0 0 60px rgba(229,49,112,.3),0 0 80px rgba(255,150,100,.1)}100%{box-shadow:0 0 20px rgba(229,49,112,.3),0 0 40px rgba(229,49,112,.1)}}
-@keyframes heartsFloat{0%{opacity:0;transform:translateY(0) scale(0)}20%{opacity:1;transform:translateY(-10px) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(.5)}}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>500km to You</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
 
-body{
-  background:#0a0a12;color:#f0e6d3;
-  font-family:'Press Start 2P',monospace;
-  overflow:hidden;width:100vw;height:100vh;
-  cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
-}
-#game{width:100vw;height:100vh;position:relative;overflow:hidden}
-canvas{position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;-webkit-image-rendering:pixelated}
-.scene{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 1.2s ease;pointer-events:none;z-index:10}
-.scene.active{opacity:1;pointer-events:all}
+    @keyframes blink {
 
-#boot .boot-text{font-size:10px;line-height:2.2;color:#00ff41;text-align:left;padding:40px;max-width:600px}
-#boot .boot-line{opacity:0;display:block}
+      0%,
+      100% {
+        opacity: 1
+      }
 
-#title{background:radial-gradient(ellipse at center,#1a1a2e 0%,#0a0a12 100%)}
-#title h1{font-size:clamp(20px,5vw,42px);color:#e53170;text-shadow:3px 3px 0 #8b1a4a,0 0 30px rgba(229,49,112,.5);animation:float 3s ease-in-out infinite;text-align:center;line-height:1.5;padding:0 20px}
-#title .subtitle{font-size:clamp(8px,2vw,14px);color:#f4a261;margin-top:20px;opacity:0;animation:fadeIn 2s ease forwards;animation-delay:1s}
-#title .start-prompt{font-size:clamp(8px,1.8vw,12px);color:#f0e6d3;margin-top:50px;animation:blink 1.5s ease-in-out infinite;opacity:0}
-.pixel-heart{font-size:clamp(40px,8vw,80px);animation:heartbeat 1.5s ease-in-out infinite;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(229,49,112,.6))}
+      50% {
+        opacity: 0
+      }
+    }
 
-.dialogue-container{position:absolute;bottom:0;left:0;width:100%;padding:20px;z-index:20}
-.dialogue-box{background:rgba(10,10,18,.92);border:3px solid #e53170;border-radius:4px;padding:24px 28px;max-width:700px;margin:0 auto;position:relative;box-shadow:0 0 20px rgba(229,49,112,.2),inset 0 0 30px rgba(0,0,0,.5)}
-.dialogue-text{font-size:clamp(9px,1.8vw,13px);line-height:2;color:#f0e6d3;min-height:60px}
-.dialogue-text .highlight{color:#e53170}
-.dialogue-text .gold{color:#f4a261}
-.dialogue-text .green{color:#00ff41}
-.advance-indicator{position:absolute;bottom:8px;right:12px;font-size:9px;color:#e53170;animation:bounce 1s ease-in-out infinite;text-shadow:0 0 8px rgba(229,49,112,.5);letter-spacing:2px}
-.speaker-name{font-size:10px;color:#f4a261;margin-bottom:10px;letter-spacing:2px}
+    @keyframes float {
 
-.photo-container{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);z-index:15;opacity:0;transition:opacity .3s ease}
-.photo-container.visible{opacity:1}
-.photo-container.visible .photo-frame{animation:photoReveal 1.2s cubic-bezier(.25,.46,.45,.94) forwards,photoGlow 3s ease-in-out 1.2s infinite}
-.photo-container.visible .photo-hearts{display:block}
-.photo-frame{border:4px solid #e53170;padding:6px;background:#0a0a12;box-shadow:0 0 30px rgba(229,49,112,.4);max-width:min(75vw,380px);max-height:50vh;position:relative}
-.photo-frame img{display:block;width:100%;height:100%;object-fit:contain;max-height:calc(50vh - 20px);image-rendering:auto}
-.photo-caption{font-size:clamp(7px,1.5vw,10px);color:#f4a261;text-align:center;margin-top:12px;line-height:1.8}
-.photo-hearts{display:none;position:absolute;top:-10px;left:50%;transform:translateX(-50%);pointer-events:none}
-.photo-heart{position:absolute;color:#e53170;font-size:14px;animation:heartsFloat 2s ease-out forwards}
+      0%,
+      100% {
+        transform: translateY(0)
+      }
 
-.visa-stamp{font-size:clamp(24px,6vw,48px);color:#ff0000;border:4px solid #ff0000;padding:10px 30px;transform:rotate(-15deg);opacity:0;letter-spacing:4px;text-shadow:0 0 20px rgba(255,0,0,.5);position:absolute;top:40%;left:50%;margin-left:-150px;z-index:25}
-.km-counter{font-size:clamp(28px,7vw,56px);color:#f4a261;text-shadow:2px 2px 0 #8b5a2a;position:absolute;top:25%;left:50%;transform:translateX(-50%);z-index:15;opacity:0;transition:opacity .5s ease}
+      50% {
+        transform: translateY(-10px)
+      }
+    }
 
-.chapter-title{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:25;opacity:0;transition:opacity .8s ease}
-.chapter-title .chapter-num{font-size:clamp(8px,1.5vw,12px);color:#f4a261;letter-spacing:4px;margin-bottom:15px}
-.chapter-title h2{font-size:clamp(16px,4vw,28px);color:#e53170;text-shadow:2px 2px 0 #8b1a4a;line-height:1.6}
+    @keyframes slideUp {
+      from {
+        transform: translateY(40px);
+        opacity: 0
+      }
 
-.floating-heart{position:absolute;font-size:20px;pointer-events:none;z-index:30;opacity:0}
-.scanline-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0px,rgba(0,0,0,.05) 1px,transparent 1px,transparent 3px);pointer-events:none;z-index:100}
-.music-toggle{position:fixed;top:15px;right:15px;z-index:200;background:rgba(10,10,18,.8);border:2px solid #e53170;color:#e53170;font-family:'Press Start 2P',monospace;font-size:10px;padding:8px 12px;cursor:pointer;border-radius:2px}
+      to {
+        transform: translateY(0);
+        opacity: 1
+      }
+    }
 
-.walk-instructions{position:absolute;top:15%;left:50%;transform:translateX(-50%);font-size:clamp(8px,1.8vw,12px);color:#f4a261;z-index:20;text-align:center;line-height:2;opacity:0;transition:opacity 1s ease}
-.walk-km{position:absolute;top:8%;left:50%;transform:translateX(-50%);font-size:clamp(10px,2vw,16px);color:#e53170;z-index:20;text-shadow:0 0 10px rgba(229,49,112,.5)}
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
 
-.final-message{text-align:center;padding:20px;z-index:15;overflow-y:auto;max-height:100vh}
-.final-message h2{font-size:clamp(16px,4vw,32px);color:#e53170;margin-bottom:20px;animation:heartbeat 2s ease-in-out infinite;text-shadow:0 0 30px rgba(229,49,112,.6)}
-.final-message p{font-size:clamp(8px,1.8vw,12px);line-height:2.5;color:#f0e6d3;max-width:600px;margin:0 auto;opacity:0}
-.final-message .signature{color:#f4a261;font-size:clamp(10px,2vw,14px);margin-top:30px}
-.gallery{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:20px;max-width:500px;margin:20px auto}
-.gallery img{width:100px;height:100px;object-fit:cover;border:2px solid #e53170;border-radius:2px;opacity:0;transition:opacity 1s ease,transform .3s ease}
-.gallery img.visible{opacity:1}
+      to {
+        opacity: 1
+      }
+    }
 
-@media(max-width:480px){.dialogue-box{padding:16px 18px}.dialogue-container{padding:10px}}
-</style>
+    @keyframes glowPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 20px rgba(229, 49, 112, .3)
+      }
+
+      50% {
+        box-shadow: 0 0 40px rgba(229, 49, 112, .7), 0 0 60px rgba(229, 49, 112, .3)
+      }
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0)
+      }
+
+      25% {
+        transform: translateX(-5px)
+      }
+
+      75% {
+        transform: translateX(5px)
+      }
+    }
+
+    @keyframes heartbeat {
+
+      0%,
+      100% {
+        transform: scale(1)
+      }
+
+      15% {
+        transform: scale(1.15)
+      }
+
+      30% {
+        transform: scale(1)
+      }
+
+      45% {
+        transform: scale(1.1)
+      }
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-4px)
+      }
+    }
+
+    @keyframes photoReveal {
+      0% {
+        clip-path: inset(50% 50% 50% 50%);
+        opacity: 0;
+        filter: brightness(2)
+      }
+
+      30% {
+        clip-path: inset(20% 20% 20% 20%);
+        opacity: .7;
+        filter: brightness(1.5)
+      }
+
+      100% {
+        clip-path: inset(0% 0% 0% 0%);
+        opacity: 1;
+        filter: brightness(1)
+      }
+    }
+
+    @keyframes photoGlow {
+      0% {
+        box-shadow: 0 0 20px rgba(229, 49, 112, .3), 0 0 40px rgba(229, 49, 112, .1)
+      }
+
+      50% {
+        box-shadow: 0 0 30px rgba(229, 49, 112, .6), 0 0 60px rgba(229, 49, 112, .3), 0 0 80px rgba(255, 150, 100, .1)
+      }
+
+      100% {
+        box-shadow: 0 0 20px rgba(229, 49, 112, .3), 0 0 40px rgba(229, 49, 112, .1)
+      }
+    }
+
+    @keyframes heartsFloat {
+      0% {
+        opacity: 0;
+        transform: translateY(0) scale(0)
+      }
+
+      20% {
+        opacity: 1;
+        transform: translateY(-10px) scale(1)
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-60px) scale(.5)
+      }
+    }
+
+    body {
+      background: #0a0a12;
+      color: #f0e6d3;
+      font-family: 'Press Start 2P', monospace;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    #game {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      -webkit-image-rendering: pixelated
+    }
+
+    .scene {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+      pointer-events: none;
+      z-index: 10
+    }
+
+    .scene.active {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    #boot .boot-text {
+      font-size: 10px;
+      line-height: 2.2;
+      color: #00ff41;
+      text-align: left;
+      padding: 40px;
+      max-width: 600px
+    }
+
+    #boot .boot-line {
+      opacity: 0;
+      display: block
+    }
+
+    #title {
+      background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a12 100%)
+    }
+
+    #title h1 {
+      font-size: clamp(20px, 5vw, 42px);
+      color: #e53170;
+      text-shadow: 3px 3px 0 #8b1a4a, 0 0 30px rgba(229, 49, 112, .5);
+      animation: float 3s ease-in-out infinite;
+      text-align: center;
+      line-height: 1.5;
+      padding: 0 20px
+    }
+
+    #title .subtitle {
+      font-size: clamp(8px, 2vw, 14px);
+      color: #f4a261;
+      margin-top: 20px;
+      opacity: 0;
+      animation: fadeIn 2s ease forwards;
+      animation-delay: 1s
+    }
+
+    #title .start-prompt {
+      font-size: clamp(8px, 1.8vw, 12px);
+      color: #f0e6d3;
+      margin-top: 50px;
+      animation: blink 1.5s ease-in-out infinite;
+      opacity: 0
+    }
+
+    .pixel-heart {
+      font-size: clamp(40px, 8vw, 80px);
+      animation: heartbeat 1.5s ease-in-out infinite;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 20px rgba(229, 49, 112, .6))
+    }
+
+    .dialogue-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 20px;
+      z-index: 20
+    }
+
+    .dialogue-box {
+      background: rgba(10, 10, 18, .92);
+      border: 3px solid #e53170;
+      border-radius: 4px;
+      padding: 24px 28px;
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+      box-shadow: 0 0 20px rgba(229, 49, 112, .2), inset 0 0 30px rgba(0, 0, 0, .5)
+    }
+
+    .dialogue-text {
+      font-size: clamp(9px, 1.8vw, 13px);
+      line-height: 2;
+      color: #f0e6d3;
+      min-height: 60px
+    }
+
+    .dialogue-text .highlight {
+      color: #e53170
+    }
+
+    .dialogue-text .gold {
+      color: #f4a261
+    }
+
+    .dialogue-text .green {
+      color: #00ff41
+    }
+
+    .advance-indicator {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      font-size: 9px;
+      color: #e53170;
+      animation: bounce 1s ease-in-out infinite;
+      text-shadow: 0 0 8px rgba(229, 49, 112, .5);
+      letter-spacing: 2px
+    }
+
+    .speaker-name {
+      font-size: 10px;
+      color: #f4a261;
+      margin-bottom: 10px;
+      letter-spacing: 2px
+    }
+
+    .photo-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      z-index: 15;
+      opacity: 0;
+      transition: opacity .3s ease
+    }
+
+    .photo-container.visible {
+      opacity: 1
+    }
+
+    .photo-container.visible .photo-frame {
+      animation: photoReveal 1.2s cubic-bezier(.25, .46, .45, .94) forwards, photoGlow 3s ease-in-out 1.2s infinite
+    }
+
+    .photo-container.visible .photo-hearts {
+      display: block
+    }
+
+    .photo-frame {
+      border: 4px solid #e53170;
+      padding: 6px;
+      background: #0a0a12;
+      box-shadow: 0 0 30px rgba(229, 49, 112, .4);
+      max-width: min(75vw, 380px);
+      max-height: 50vh;
+      position: relative
+    }
+
+    .photo-frame img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      max-height: calc(50vh - 20px);
+      image-rendering: auto
+    }
+
+    .photo-caption {
+      font-size: clamp(7px, 1.5vw, 10px);
+      color: #f4a261;
+      text-align: center;
+      margin-top: 12px;
+      line-height: 1.8
+    }
+
+    .photo-hearts {
+      display: none;
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none
+    }
+
+    .photo-heart {
+      position: absolute;
+      color: #e53170;
+      font-size: 14px;
+      animation: heartsFloat 2s ease-out forwards
+    }
+
+    .visa-stamp {
+      font-size: clamp(24px, 6vw, 48px);
+      color: #ff0000;
+      border: 4px solid #ff0000;
+      padding: 10px 30px;
+      transform: rotate(-15deg);
+      opacity: 0;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(255, 0, 0, .5);
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      margin-left: -150px;
+      z-index: 25
+    }
+
+    .km-counter {
+      font-size: clamp(28px, 7vw, 56px);
+      color: #f4a261;
+      text-shadow: 2px 2px 0 #8b5a2a;
+      position: absolute;
+      top: 25%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      opacity: 0;
+      transition: opacity .5s ease
+    }
+
+    .chapter-title {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 25;
+      opacity: 0;
+      transition: opacity .8s ease
+    }
+
+    .chapter-title .chapter-num {
+      font-size: clamp(8px, 1.5vw, 12px);
+      color: #f4a261;
+      letter-spacing: 4px;
+      margin-bottom: 15px
+    }
+
+    .chapter-title h2 {
+      font-size: clamp(16px, 4vw, 28px);
+      color: #e53170;
+      text-shadow: 2px 2px 0 #8b1a4a;
+      line-height: 1.6
+    }
+
+    .floating-heart {
+      position: absolute;
+      font-size: 20px;
+      pointer-events: none;
+      z-index: 30;
+      opacity: 0
+    }
+
+    .scanline-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .05) 0px, rgba(0, 0, 0, .05) 1px, transparent 1px, transparent 3px);
+      pointer-events: none;
+      z-index: 100
+    }
+
+    .music-toggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 200;
+      background: rgba(10, 10, 18, .8);
+      border: 2px solid #e53170;
+      color: #e53170;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 2px
+    }
+
+    .walk-instructions {
+      position: absolute;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(8px, 1.8vw, 12px);
+      color: #f4a261;
+      z-index: 20;
+      text-align: center;
+      line-height: 2;
+      opacity: 0;
+      transition: opacity 1s ease
+    }
+
+    .walk-km {
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(10px, 2vw, 16px);
+      color: #e53170;
+      z-index: 20;
+      text-shadow: 0 0 10px rgba(229, 49, 112, .5)
+    }
+
+    .final-message {
+      text-align: center;
+      padding: 20px;
+      z-index: 15;
+      overflow-y: auto;
+      max-height: 100vh
+    }
+
+    .final-message h2 {
+      font-size: clamp(16px, 4vw, 32px);
+      color: #e53170;
+      margin-bottom: 20px;
+      animation: heartbeat 2s ease-in-out infinite;
+      text-shadow: 0 0 30px rgba(229, 49, 112, .6)
+    }
+
+    .final-message p {
+      font-size: clamp(8px, 1.8vw, 12px);
+      line-height: 2.5;
+      color: #f0e6d3;
+      max-width: 600px;
+      margin: 0 auto;
+      opacity: 0
+    }
+
+    .final-message .signature {
+      color: #f4a261;
+      font-size: clamp(10px, 2vw, 14px);
+      margin-top: 30px
+    }
+
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      padding: 20px;
+      max-width: 500px;
+      margin: 20px auto
+    }
+
+    .gallery img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border: 2px solid #e53170;
+      border-radius: 2px;
+      opacity: 0;
+      transition: opacity 1s ease, transform .3s ease
+    }
+
+    .gallery img.visible {
+      opacity: 1
+    }
+
+    @media(max-width:480px) {
+      .dialogue-box {
+        padding: 16px 18px
+      }
+
+      .dialogue-container {
+        padding: 10px
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div id="game">
-  <canvas id="bgCanvas"></canvas>
-  <div class="scanline-overlay"></div>
-  <button class="music-toggle" id="musicBtn" style="display:none;">&#9834; Music</button>
-</div>
-<script>
-// ================================================
-// 500km to You — A Love Story Game
-// Made with love by Amartuvshin for Maagii
-// ================================================
-const $ = s => document.querySelector(s);
-const game = $('#game');
-const canvas = $('#bgCanvas');
-const ctx = canvas.getContext('2d');
+  <div id="game">
+    <canvas id="bgCanvas"></canvas>
+    <div class="scanline-overlay"></div>
+    <button class="music-toggle" id="musicBtn" style="display:none;">&#9834; Music</button>
+  </div>
+  <script>
+    // ================================================
+    // 500km to You — A Love Story Game
+    // Made with love by Amartuvshin for Maagii
+    // ================================================
+    const $ = s => document.querySelector(s);
+    const game = $('#game');
+    const canvas = $('#bgCanvas');
+    const ctx = canvas.getContext('2d');
 
-// ---- RESIZE (Low-res for authentic pixel art) ----
-const GAME_W = 384, GAME_H = 216;
-function resize() { canvas.width = GAME_W; canvas.height = GAME_H; }
-window.addEventListener('resize', resize); resize();
+    // ---- RESIZE (Low-res for authentic pixel art) ----
+    const GAME_W = 384, GAME_H = 216;
+    function resize() { canvas.width = GAME_W; canvas.height = GAME_H; }
+    window.addEventListener('resize', resize); resize();
 
-// ---- AUDIO ----
-let audioCtx = null, musicPlaying = false, musicInterval = null;
-function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-function playNote(freq, dur, time, type='triangle', vol=0.06) {
-  if (!audioCtx) return;
-  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-  o.type = type; o.frequency.setValueAtTime(freq, time);
-  g.gain.setValueAtTime(vol, time); g.gain.exponentialRampToValueAtTime(0.001, time + dur);
-  o.connect(g); g.connect(audioCtx.destination); o.start(time); o.stop(time + dur);
-}
-const melody = [
-  {n:329.63,d:.6},{n:392,d:.3},{n:440,d:.6},{n:392,d:.3},{n:329.63,d:.9},{n:0,d:.3},
-  {n:293.66,d:.6},{n:329.63,d:.3},{n:392,d:.6},{n:440,d:.3},{n:493.88,d:.9},{n:0,d:.3},
-  {n:523.25,d:.6},{n:493.88,d:.3},{n:440,d:.6},{n:392,d:.3},{n:329.63,d:.6},{n:293.66,d:.3},
-  {n:329.63,d:1.2},{n:0,d:.6},
-  {n:220,d:.6},{n:261.63,d:.3},{n:329.63,d:.6},{n:293.66,d:.3},{n:261.63,d:.9},{n:0,d:.3},
-  {n:246.94,d:.6},{n:293.66,d:.3},{n:392,d:.9},{n:329.63,d:.6},{n:293.66,d:.6},{n:0,d:.6}
-];
-function playMelody() {
-  if (!audioCtx) initAudio();
-  let t = audioCtx.currentTime + 0.1;
-  for (const m of melody) { if (m.n > 0) { playNote(m.n, m.d*.9, t, 'triangle', .05); playNote(m.n*.5, m.d*.9, t, 'sine', .025); } t += m.d; }
-  return t - audioCtx.currentTime;
-}
-function startMusic() { musicPlaying = true; const d = playMelody(); musicInterval = setInterval(() => { if (musicPlaying) playMelody(); }, d * 1000); $('#musicBtn').textContent = '♪ ON'; }
-function stopMusic() { musicPlaying = false; if (musicInterval) clearInterval(musicInterval); $('#musicBtn').textContent = '♪ OFF'; }
-function toggleMusic() { if (musicPlaying) stopMusic(); else startMusic(); }
+    // ---- AUDIO ----
+    let audioCtx = null, musicPlaying = false, musicInterval = null;
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playNote(freq, dur, time, type = 'triangle', vol = 0.06) {
+      if (!audioCtx) return;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, time);
+      g.gain.setValueAtTime(vol, time); g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+      o.connect(g); g.connect(audioCtx.destination); o.start(time); o.stop(time + dur);
+    }
+    const melody = [
+      { n: 329.63, d: .6 }, { n: 392, d: .3 }, { n: 440, d: .6 }, { n: 392, d: .3 }, { n: 329.63, d: .9 }, { n: 0, d: .3 },
+      { n: 293.66, d: .6 }, { n: 329.63, d: .3 }, { n: 392, d: .6 }, { n: 440, d: .3 }, { n: 493.88, d: .9 }, { n: 0, d: .3 },
+      { n: 523.25, d: .6 }, { n: 493.88, d: .3 }, { n: 440, d: .6 }, { n: 392, d: .3 }, { n: 329.63, d: .6 }, { n: 293.66, d: .3 },
+      { n: 329.63, d: 1.2 }, { n: 0, d: .6 },
+      { n: 220, d: .6 }, { n: 261.63, d: .3 }, { n: 329.63, d: .6 }, { n: 293.66, d: .3 }, { n: 261.63, d: .9 }, { n: 0, d: .3 },
+      { n: 246.94, d: .6 }, { n: 293.66, d: .3 }, { n: 392, d: .9 }, { n: 329.63, d: .6 }, { n: 293.66, d: .6 }, { n: 0, d: .6 }
+    ];
+    function playMelody() {
+      if (!audioCtx) initAudio();
+      let t = audioCtx.currentTime + 0.1;
+      for (const m of melody) { if (m.n > 0) { playNote(m.n, m.d * .9, t, 'triangle', .05); playNote(m.n * .5, m.d * .9, t, 'sine', .025); } t += m.d; }
+      return t - audioCtx.currentTime;
+    }
+    function startMusic() { musicPlaying = true; const d = playMelody(); musicInterval = setInterval(() => { if (musicPlaying) playMelody(); }, d * 1000); $('#musicBtn').textContent = '♪ ON'; }
+    function stopMusic() { musicPlaying = false; if (musicInterval) clearInterval(musicInterval); $('#musicBtn').textContent = '♪ OFF'; }
+    function toggleMusic() { if (musicPlaying) stopMusic(); else startMusic(); }
 
-// ---- PIXEL ART CHARACTER SYSTEM ----
-// ---- 16/32-BIT SPRITE ENGINE ----
-function drawSprite(cx, cy, scale, rows, palette, flip) {
-  const s = scale;
-  const h = rows.length;
-  const w = rows[0].length;
-  const x0 = Math.round(cx - (w * s) / 2);
-  const y0 = Math.round(cy - h * s);
-  for (let r = 0; r < h; r++) {
-    for (let c = 0; c < w; c++) {
-      const col = flip ? w - 1 - c : c;
-      const color = palette[rows[r][col]];
-      if (!color) continue;
+    // ---- PIXEL ART CHARACTER SYSTEM ----
+    // ---- 16/32-BIT SPRITE ENGINE ----
+    function drawSprite(cx, cy, scale, rows, palette, flip) {
+      const s = scale;
+      const h = rows.length;
+      const w = rows[0].length;
+      const x0 = Math.round(cx - (w * s) / 2);
+      const y0 = Math.round(cy - h * s);
+      for (let r = 0; r < h; r++) {
+        for (let c = 0; c < w; c++) {
+          const col = flip ? w - 1 - c : c;
+          const color = palette[rows[r][col]];
+          if (!color) continue;
+          ctx.fillStyle = color;
+          ctx.fillRect(x0 + c * s, y0 + r * s, s + 0.5, s + 0.5);
+        }
+      }
+    }
+
+    // ---- AMARTUVSHIN SPRITE (Puffer jacket, beige hoodie, dark hair) ----
+    const A_PAL = {
+      '.': null,
+      'o': '#0e0e1a',   // outline
+      'H': '#1a1a35',   // hair dark
+      'h': '#2a2a50',   // hair highlight
+      'S': '#d4a574',   // skin
+      's': '#ba8a58',   // skin shadow
+      'L': '#e8c090',   // skin light
+      'W': '#f0eae4',   // eye white (brighter)
+      'e': '#0e0e1a',   // eye pupil
+      'm': '#b07050',   // mouth
+      'C': '#c8ac86',   // hoodie
+      'c': '#a89068',   // hoodie shadow
+      'B': '#d8c0a0',   // hoodie bright
+      'J': '#505070',   // jacket (BRIGHT purple-gray)
+      'j': '#3c3c58',   // jacket shadow
+      'K': '#686890',   // jacket highlight
+      'P': '#1e1e2c',   // pants
+      'p': '#28283a',   // pants light
+      'G': '#24243a',   // shoe
+      'g': '#1a1a28',   // shoe dark
+      'F': '#d4a574',   // hand (skin)
+    };
+
+    const A_BODY = [
+      '....ooooo.....',
+      '...ohHHHho....',
+      '..oHHHhHHHo...',
+      '..oHHhHhHHHo..',
+      '..oHHHHHHHHo..',
+      '..oHsSSSSLHo..',
+      '..oSsSSSSLSo..',
+      '..oSWeSSeWSSo.',
+      '..oSSSSSSSSo..',
+      '...oSSmSmSo...',
+      '....oLSSLo....',
+      '.....oSSo.....',
+      '....oBCCBo....',
+      '...oCCBBCCo...',
+      '..oKJcCBCcJKo.',
+      '.oKJJcCBCcJJKo',
+      '.oJKJcCBCcJKjo',
+      'FoKJJcCBCcJJKo',
+      'FoJKJJJJJJJKJo',
+      '.oKJJJJJJJJJKo',
+      '..oJKJJJJJKJo.',
+      '..oJJJJJJJJJo.',
+    ];
+    const A_LEGS_STAND = [
+      '...opPPPPPpo..',
+      '....oPP.PPo...',
+      '....oGg.gGo...',
+    ];
+    const A_LEGS_WALK = [
+      '..opPPo.oPPpo.',
+      '..oGGo...oGGo.',
+      '.ogGo.....oGgo',
+    ];
+
+    function drawAmaraa(cx, cy, scale, frame, flip) {
+      const walk = Math.floor(frame) % 4 >= 2;
+      const rows = [...A_BODY, ...(walk ? A_LEGS_WALK : A_LEGS_STAND)];
+      drawSprite(cx, cy, scale, rows, A_PAL, flip);
+    }
+
+    // ---- MAAGII SPRITE (Jean shorts, white shirt, long brown hair, pretty!) ----
+    const M_PAL = {
+      '.': null,
+      'o': '#0e0e1a',   // outline
+      'H': '#4a3020',   // hair dark brown
+      'h': '#6a4c34',   // hair mid
+      'R': '#3a2010',   // hair darkest
+      'r': '#8a6848',   // hair highlight shine
+      'S': '#eaC8a4',   // skin
+      's': '#d4ae88',   // skin shadow
+      'L': '#f4d8b8',   // skin highlight
+      'B': '#f0a0a0',   // blush (rosy pink)
+      'W': '#f0eae4',   // eye white
+      'e': '#2a1810',   // eye pupil (soft brown)
+      'm': '#e0a090',   // mouth (pink lips!)
+      'T': '#f0eae0',   // white shirt
+      't': '#dcd0c0',   // shirt shadow
+      'I': '#f8f2ea',   // shirt bright
+      'J': '#4466aa',   // jean shorts (blue!)
+      'j': '#3a5890',   // jean shadow
+      'K': '#5578bb',   // jean highlight
+      'P': '#eaC8a4',   // bare legs (skin - she's in shorts!)
+      'p': '#d4ae88',   // legs shadow
+      'G': '#f0eae0',   // white sneakers
+      'g': '#dcd0c0',   // sneaker shadow
+      'D': '#eaC8a4',   // hand (skin)
+    };
+
+    const M_BODY = [
+      '....ooooo.....',
+      '...oHhrHhHo...',
+      '..oHHhHhHHHo..',
+      '..oHHHHHHHHo..',
+      '..oHHHHHHHHo..',
+      '..oHsSSSLsHo..',
+      '..oBSSSSSsBo..',
+      '..oSWeSSeWSo..',
+      '..oSSSsSsSso..',
+      '...oSLmmLSo...',
+      '..oHoLSSLoHo..',
+      '..oH.oSSo.Ho..',
+      '..ohoTIITtoho.',
+      '...otTIITto...',
+      '...otTIITto...',
+      'D..otTTTTto..D',
+      '...otTTTTto...',
+      '...oJJKKJJo...',
+      '....ojJKJjo...',
+      '....oJJKJo....',
+      '.....oPPo.....',
+    ];
+    const M_LEGS_STAND = [
+      '....oPP.PPo...',
+      '....oPp.pPo...',
+      '....oGg.gGo...',
+    ];
+    const M_LEGS_WALK = [
+      '...oPPo.oPPo..',
+      '..oGGo...oGGo.',
+      '.ogGo.....oGgo',
+    ];
+
+    function drawMaagii(cx, cy, scale, frame, flip) {
+      const walk = Math.floor(frame) % 4 >= 2;
+      const rows = [...M_BODY, ...(walk ? M_LEGS_WALK : M_LEGS_STAND)];
+      drawSprite(cx, cy, scale, rows, M_PAL, flip);
+    }
+
+    // ---- MOTHER SPRITE (Amaraa's mom, Asian older female, traditional Mongolian deel) ----
+    const MOM_PAL = {
+      '.': null,
+      'o': '#0e0e1a',   // outline
+      'H': '#1a1a28',   // hair dark (black, tied up bun)
+      'h': '#2a2a38',   // hair mid
+      'r': '#3a3a48',   // hair gray/shine
+      'S': '#d4a888',   // skin (warm, mature)
+      's': '#c09474',   // skin shadow
+      'L': '#e4bca0',   // skin highlight
+      'B': '#d4a0a0',   // blush (rosy cheeks - warm mom)
+      'W': '#e8e0d8',   // eye white
+      'e': '#1a1420',   // eye pupil
+      'm': '#d09080',   // mouth (warm gentle smile)
+      'E': '#c88070',   // earring
+      'D': '#6a2030',   // deel (traditional robe - deep red/maroon)
+      'd': '#5a1828',   // deel shadow
+      'G': '#d4a840',   // golden trim/sash
+      'g': '#b89030',   // gold shadow
+      'T': '#7a2838',   // deel highlight
+      'P': '#3a1a20',   // deel bottom/boots
+      'p': '#4a2a30',   // boots lighter
+      'F': '#d4a888',   // hand (skin)
+    };
+
+    const MOM_BODY = [
+      '....oHHHo.....',  // bun on top
+      '...oHHrHHo....',  // hair bun round
+      '..oHHHHHHHo...',  // hair wide (feminine volume)
+      '..oHHhHhHHo...',  // hair sides frame face
+      '..oHHHHHHHHo..',  // hair covers forehead
+      '..oBsSSSLsBo..',  // face with blush cheeks
+      '..oSWeSSeWSo..',  // eyes (soft)
+      '..oSSSsSsSso..',  // nose
+      '..EoSLmmLSoE..',  // mouth smile + earrings
+      '..oHoLSSLoHo..',  // chin, hair on sides
+      '..oH.oSSo.Ho..',  // neck, hair on sides
+      '....oGGGGo....',  // golden collar
+      '...oGDDDDGo...',  // deel top with gold trim
+      '..oDDDDDDDDo..',  // deel body
+      '.oDdDDGGDDdDo.',  // deel with sash
+      'FoDdDDGGDDdDoF',  // hands + sash center
+      '.oDdDDDDDDdDo.',  // deel lower
+      '.oDTDDDDDDTDo.',  // deel with highlights
+      '..oDDDDDDDDo..',  // deel skirt
+      '..oDDDDDDDDo..',  // deel skirt
+      '...oPPPPPPo...',  // boots under deel
+    ];
+    const MOM_LEGS_STAND = [
+      '...oPPPPPPo...',
+      '....opp.ppo...',
+      '....oPP.PPo...',
+    ];
+
+    function drawMom(cx, cy, scale, frame, flip) {
+      const rows = [...MOM_BODY, ...MOM_LEGS_STAND];
+      drawSprite(cx, cy, scale, rows, MOM_PAL, flip);
+    }
+
+    // ---- ENVIRONMENT DRAWING ----
+    let stars = [];
+    function initStars(n = 50) { stars = []; for (let i = 0; i < n; i++) stars.push({ x: Math.random() * GAME_W, y: Math.random() * GAME_H, s: 1, sp: Math.random() * .02 + .005, o: Math.random() * Math.PI * 2, b: Math.random() * .5 + .5 }); }
+    initStars();
+    function drawStars(t) { for (const s of stars) { const a = s.b * (.5 + .5 * Math.sin(t * s.sp + s.o)); ctx.fillStyle = `rgba(240,230,211,${a})`; ctx.fillRect(s.x | 0, s.y | 0, 1, 1); } }
+
+    // ---- 32-BIT SMOOTH ENVIRONMENTS ----
+
+    function drawNightCity(t) {
+      const w = GAME_W, h = GAME_H;
+      const sky = ctx.createLinearGradient(0, 0, 0, h * .7);
+      sky.addColorStop(0, '#05051a'); sky.addColorStop(0.4, '#0a0a2a'); sky.addColorStop(0.8, '#12122e'); sky.addColorStop(1, '#1a1535');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+      drawStars(t);
+
+      // Distant buildings
+      const far = [.18, .32, .42, .28, .5, .35, .4, .3, .48, .22, .38, .44, .25, .36, .45, .33, .5, .27];
+      for (let i = 0; i < far.length; i++) {
+        const bx = i * (w / far.length), bw = w / far.length + 1, bh = h * far[i] * .35;
+        const bg = ctx.createLinearGradient(bx, h * .55 - bh, bx, h * .55);
+        bg.addColorStop(0, '#10102a'); bg.addColorStop(1, '#0c0c20');
+        ctx.fillStyle = bg; ctx.fillRect(bx, h * .55 - bh, bw, bh + h * .45);
+        for (let wy = h * .55 - bh + 3; wy < h * .53; wy += 3) {
+          for (let wx = bx + 1; wx < bx + bw - 1; wx += 2) {
+            const lit = Math.sin(i * 3.7 + wx * .5 + wy * .5) > .3;
+            ctx.fillStyle = lit ? 'rgba(255,200,100,0.12)' : 'rgba(30,30,60,0.3)';
+            ctx.fillRect(wx, wy, 1, 1);
+          }
+        }
+      }
+
+      // Near buildings
+      const near = [.3, .55, .45, .6, .35, .52, .65, .4, .58, .48, .55, .38];
+      for (let i = 0; i < near.length; i++) {
+        const bx = i * (w / near.length), bw = w / near.length + 1, bh = h * near[i] * .3;
+        const bg = ctx.createLinearGradient(bx, h * .65 - bh, bx, h * .65);
+        bg.addColorStop(0, '#0a0a18'); bg.addColorStop(1, '#080814');
+        ctx.fillStyle = bg; ctx.fillRect(bx, h * .65 - bh, bw, bh + h * .35);
+        for (let wy = h * .65 - bh + 3; wy < h * .63; wy += 3) {
+          for (let wx = bx + 1; wx < bx + bw - 1; wx += 2) {
+            const lit = Math.sin(i * 5.3 + wx * .6 + wy * .3) > .2;
+            if (lit) {
+              const wc = Math.random() > .5 ? 'rgba(255,180,80,0.25)' : 'rgba(200,220,255,0.15)';
+              ctx.fillStyle = wc; ctx.fillRect(wx, wy, 1, 1);
+            }
+          }
+        }
+      }
+
+      // Ground/sidewalk
+      const gnd = ctx.createLinearGradient(0, h * .72, 0, h);
+      gnd.addColorStop(0, '#0c0c14'); gnd.addColorStop(.3, '#0a0a10'); gnd.addColorStop(1, '#060608');
+      ctx.fillStyle = gnd; ctx.fillRect(0, h * .72, w, h * .28);
+      ctx.fillStyle = '#0e0e14'; ctx.fillRect(0, h * .76, w, h * .14);
+      ctx.fillStyle = '#1a1a22'; ctx.fillRect(0, h * .755, w, 1);
+
+      // Street lights
+      for (let i = 0; i < 4; i++) {
+        const lx = w * (.15 + i * .25);
+        ctx.fillStyle = '#2a2a35'; ctx.fillRect(lx, h * .5, 1, h * .26);
+        ctx.fillStyle = '#3a3a45'; ctx.fillRect(lx - 2, h * .5, 4, 1);
+        const lg = ctx.createRadialGradient(lx, h * .76, 1, lx, h * .76, 20);
+        lg.addColorStop(0, 'rgba(255,200,120,0.08)'); lg.addColorStop(.5, 'rgba(255,180,80,0.03)'); lg.addColorStop(1, 'transparent');
+        ctx.fillStyle = lg; ctx.fillRect(lx - 20, h * .5, 40, h * .4);
+      }
+
+      // Neon signs on buildings
+      ctx.fillStyle = 'rgba(229,49,112,0.15)'; ctx.fillRect(w * .15, h * .42, 8, 3);
+      ctx.fillStyle = 'rgba(100,200,255,0.12)'; ctx.fillRect(w * .62, h * .44, 6, 2);
+      ctx.fillStyle = 'rgba(255,200,50,0.1)'; ctx.fillRect(w * .38, h * .48, 5, 2);
+
+      // Pixel art trees/bushes on sidewalk
+      for (let i = 0; i < 3; i++) {
+        const tx = w * (.08 + i * .35);
+        // Tree trunk
+        ctx.fillStyle = '#1a1810'; ctx.fillRect(tx, h * .69, 1, 4);
+        // Tree canopy (round pixel bush)
+        ctx.fillStyle = '#1a2a12'; ctx.fillRect(tx - 2, h * .66, 5, 3);
+        ctx.fillStyle = '#223316'; ctx.fillRect(tx - 1, h * .65, 3, 1);
+        ctx.fillStyle = '#2a3a1a'; ctx.fillRect(tx, h * .66, 1, 1);
+      }
+
+      // Bench
+      ctx.fillStyle = '#2a2015'; ctx.fillRect(w * .78, h * .71, 6, 1);
+      ctx.fillStyle = '#1a1510'; ctx.fillRect(w * .79, h * .72, 1, 2); ctx.fillRect(w * .83, h * .72, 1, 2);
+
+      // Wet ground reflections
+      ctx.globalAlpha = 0.03;
+      ctx.scale(1, -1); ctx.translate(0, -h * 1.52);
+      for (let i = 0; i < near.length; i++) {
+        const bx = i * (w / near.length), bw = w / near.length + 1;
+        ctx.fillStyle = '#ff8'; ctx.fillRect(bx, h * .65, bw, 4);
+      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+    }
+
+    function drawFountain(t) {
+      const w = GAME_W, h = GAME_H;
+
+      // Evening sky (warm sunset feel for UB evening)
+      const sky = ctx.createLinearGradient(0, 0, 0, h * .35);
+      sky.addColorStop(0, '#0a0a2a'); sky.addColorStop(0.4, '#1a1040'); sky.addColorStop(0.7, '#2a1848'); sky.addColorStop(1, '#3a2050');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * .35);
+      drawStars(t);
+
+      // ---- STATE DEPARTMENT STORE (Soviet-era UB landmark) ----
+      const bx = w * .06, bw = w * .88; // building x and width
+      const storeY = h * .08, storeH = h * .58;
+
+      // Main facade (pink/beige Soviet stone)
+      const facade = ctx.createLinearGradient(0, storeY, 0, storeY + storeH);
+      facade.addColorStop(0, '#c8a898'); facade.addColorStop(.3, '#d0b0a0'); facade.addColorStop(.6, '#c8a898'); facade.addColorStop(1, '#b89888');
+      ctx.fillStyle = facade; ctx.fillRect(bx, storeY, bw, storeH);
+
+      // Roof parapet (flat Soviet top)
+      ctx.fillStyle = '#a08878'; ctx.fillRect(bx - 1, storeY - 2, bw + 2, 3);
+      ctx.fillStyle = '#b09888'; ctx.fillRect(bx, storeY - 3, bw, 2);
+      ctx.fillStyle = '#c0a898'; ctx.fillRect(bx + 1, storeY - 4, bw - 2, 1);
+
+      // "1921" and "2023" on rooftop
+      ctx.fillStyle = '#d4b870';
+      ctx.font = '4px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('1921', bx + bw * .25, storeY - 1);
+      ctx.fillText('2023', bx + bw * .75, storeY - 1);
+
+      // Flags on roof
+      for (let i = 0; i < 4; i++) {
+        const fx2 = bx + bw * .15 + i * bw * .24;
+        ctx.fillStyle = '#4a4440'; ctx.fillRect(fx2, storeY - 8, 1, 6); // pole
+        // Mongolian flag (red-blue-red)
+        const fwave = Math.sin(t * .004 + i) * 0.5;
+        ctx.fillStyle = '#c03030'; ctx.fillRect(fx2 + 1, storeY - 8 + fwave, 3, 1);
+        ctx.fillStyle = '#2050a0'; ctx.fillRect(fx2 + 1, storeY - 7 + fwave, 3, 1);
+        ctx.fillStyle = '#c03030'; ctx.fillRect(fx2 + 1, storeY - 6 + fwave, 3, 1);
+      }
+
+      // ---- GRID OF WINDOWS (Soviet style: 7 rows x 9 columns) ----
+      const winStartY = storeY + 4;
+      const winRows = 7, winCols = 9;
+      const winW = bw * .075, winH = storeH * .065;
+      const winGapX = (bw - winCols * winW) / (winCols + 1);
+      const winGapY = (storeH * .7 - winRows * winH) / (winRows + 1);
+
+      for (let r = 0; r < winRows; r++) {
+        for (let c = 0; c < winCols; c++) {
+          const wx = bx + winGapX + (winGapX + winW) * c;
+          const wy = winStartY + winGapY + (winGapY + winH) * r;
+
+          // Skip center windows for golden balcony area (rows 3-4, cols 3-5)
+          if (r >= 3 && r <= 4 && c >= 3 && c <= 5) continue;
+
+          // Window recess
+          ctx.fillStyle = '#8a7060'; ctx.fillRect(wx - 0.5, wy - 0.5, winW + 1, winH + 1);
+          // Window glass - some lit warm, some dark
+          const lit = (c + r * 3 + 7) % 5 !== 0;
+          if (lit) {
+            const wg = ctx.createLinearGradient(wx, wy, wx, wy + winH);
+            wg.addColorStop(0, '#f0d890'); wg.addColorStop(1, '#e0c870');
+            ctx.fillStyle = wg;
+          } else {
+            ctx.fillStyle = '#3a4a5a';
+          }
+          ctx.fillRect(wx, wy, winW, winH);
+          // Window divider (cross)
+          ctx.fillStyle = '#9a8878'; ctx.fillRect(wx + winW / 2, wy, 0.5, winH);
+          ctx.fillStyle = '#9a8878'; ctx.fillRect(wx, wy + winH / 2, winW, 0.5);
+        }
+      }
+
+      // ---- GOLDEN ORNAMENTAL BALCONY (center, rows 3-4 area) ----
+      const balcY = winStartY + 3 * (winGapY + winH) + winGapY;
+      const balcH = 2 * (winH + winGapY);
+      const balcX = bx + 3 * (winGapX + winW);
+      const balcW = 3 * (winW + winGapX) - winGapX + winGapX * 2;
+
+      // Balcony background (golden ornamental)
+      const bg = ctx.createLinearGradient(balcX, balcY, balcX, balcY + balcH);
+      bg.addColorStop(0, '#d4a840'); bg.addColorStop(.3, '#e0b850'); bg.addColorStop(.7, '#d4a840'); bg.addColorStop(1, '#c09030');
+      ctx.fillStyle = bg; ctx.fillRect(balcX - 2, balcY - 1, balcW + 4, balcH + 2);
+
+      // Golden railing pattern
+      ctx.fillStyle = '#c09030'; ctx.fillRect(balcX - 3, balcY - 2, balcW + 6, 1);
+      ctx.fillStyle = '#e8c860'; ctx.fillRect(balcX - 3, balcY + balcH + 1, balcW + 6, 1);
+      // Ornamental details on balcony
+      for (let i = 0; i < 6; i++) {
+        const ox = balcX + 2 + i * (balcW / 6);
+        ctx.fillStyle = '#c09838'; ctx.fillRect(ox, balcY, 1, balcH);
+        // Diamond ornament
+        ctx.fillStyle = '#e8c860'; ctx.fillRect(ox, balcY + balcH * .4, 2, 2);
+      }
+      // Balcony center arch detail
+      ctx.fillStyle = '#e8c860';
+      ctx.fillRect(balcX + balcW * .3, balcY + 2, balcW * .4, 1);
+      ctx.fillRect(balcX + balcW * .35, balcY + 1, balcW * .3, 1);
+
+      // ---- GROUND FLOOR (entrance area) ----
+      const gfY = storeY + storeH * .75;
+      const gfH = storeH * .25;
+      // Darker stone ground floor
+      ctx.fillStyle = '#9a8878'; ctx.fillRect(bx, gfY, bw, gfH);
+
+      // Main entrance (center, tall glass doors)
+      const dx = w * .38, dw = w * .24, dy = gfY + 2, dh = gfH - 2;
+      ctx.fillStyle = '#5a4a38'; ctx.fillRect(dx - 1, dy - 1, dw + 2, dh + 2);
+      const dg = ctx.createLinearGradient(dx, dy, dx, dy + dh);
+      dg.addColorStop(0, '#e8d8b8'); dg.addColorStop(1, '#d0c0a0');
+      ctx.fillStyle = dg; ctx.fillRect(dx, dy, dw, dh);
+      // Door divisions (3 glass panels)
+      ctx.fillStyle = '#8a7a68';
+      ctx.fillRect(dx + dw * .33, dy, 0.5, dh);
+      ctx.fillRect(dx + dw * .66, dy, 0.5, dh);
+      // Horizontal bar
+      ctx.fillRect(dx, dy + dh * .5, dw, 0.5);
+
+      // "STATE DEPARTMENT STORE" sign above entrance
+      ctx.fillStyle = '#d4a840';
+      ctx.font = '3px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('STATE DEPARTMENT STORE', w * .5, gfY);
+
+      // Side shop windows (ground floor)
+      for (let side = 0; side < 2; side++) {
+        const sx = side === 0 ? bx + 3 : dx + dw + 3, sw = (dx - bx - 6);
+        const sy = gfY + 3;
+        if (side === 1) { // right side
+          const sx2 = dx + dw + 3;
+          ctx.fillStyle = '#6a5a48'; ctx.fillRect(sx2 - 0.5, sy - 0.5, sw + 1, dh * .7 + 1);
+          ctx.fillStyle = '#e8d8a8'; ctx.fillRect(sx2, sy, sw, dh * .7);
+        } else {
+          ctx.fillStyle = '#6a5a48'; ctx.fillRect(sx - 0.5, sy - 0.5, sw + 1, dh * .7 + 1);
+          ctx.fillStyle = '#e8d8a8'; ctx.fillRect(sx, sy, sw, dh * .7);
+        }
+      }
+
+      // ---- GROUND / PLAZA ----
+      const gy = storeY + storeH;
+      // Stone tile plaza
+      const plz = ctx.createLinearGradient(0, gy, 0, h);
+      plz.addColorStop(0, '#4a4440'); plz.addColorStop(.3, '#3a3530'); plz.addColorStop(1, '#2a2520');
+      ctx.fillStyle = plz; ctx.fillRect(0, gy, w, h - gy);
+
+      // Tile grid pattern
+      for (let ty = gy; ty < h; ty += 4) {
+        for (let tx = 0; tx < w; tx += 5) {
+          const off = Math.floor((ty - gy) / 4) % 2 === 0 ? 2 : 0;
+          ctx.fillStyle = 'rgba(70,65,58,0.12)';
+          ctx.fillRect(tx + off, ty, 4, 3);
+          ctx.fillStyle = 'rgba(30,28,25,0.08)';
+          ctx.fillRect(tx + off, ty + 3, 4, 0.5);
+          ctx.fillRect(tx + off + 4, ty, 0.5, 3);
+        }
+      }
+
+      // ---- FOUNTAIN IN PLAZA (centered, large) ----
+      const fx = w * .5, fy = gy + (h - gy) * .3;
+
+      // Fountain outer rim (large stone circle)
+      ctx.fillStyle = '#5a5550';
+      ctx.beginPath(); ctx.ellipse(fx, fy + 5, 32, 10, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#6a6560';
+      ctx.beginPath(); ctx.ellipse(fx, fy + 4, 30, 9, 0, 0, Math.PI * 2); ctx.fill();
+      // Stone rim detail
+      ctx.fillStyle = '#7a7570';
+      ctx.beginPath(); ctx.ellipse(fx, fy + 3, 28, 8, 0, 0, Math.PI * 2); ctx.fill();
+      // Water in basin
+      const wb = ctx.createRadialGradient(fx, fy + 2, 2, fx, fy + 2, 25);
+      wb.addColorStop(0, 'rgba(100,180,240,0.45)'); wb.addColorStop(.5, 'rgba(70,140,200,0.3)'); wb.addColorStop(1, 'rgba(40,80,140,0.15)');
+      ctx.fillStyle = wb;
+      ctx.beginPath(); ctx.ellipse(fx, fy + 2, 25, 7, 0, 0, Math.PI * 2); ctx.fill();
+
+      // Central pillar (taller, ornamental)
+      ctx.fillStyle = '#6a6560'; ctx.fillRect(fx - 2, fy - 20, 4, 22);
+      ctx.fillStyle = '#7a7570'; ctx.fillRect(fx - 3, fy - 1, 6, 2); // base ring
+      ctx.fillStyle = '#7a7570'; ctx.fillRect(fx - 3, fy - 10, 6, 2); // mid ring
+      ctx.fillStyle = '#8a8580'; ctx.fillRect(fx - 2, fy - 15, 4, 1); // upper ring
+      ctx.fillStyle = '#9a9590'; ctx.fillRect(fx - 1, fy - 22, 2, 2); // top cap
+
+      // Second tier basin
+      ctx.fillStyle = '#7a7570';
+      ctx.beginPath(); ctx.ellipse(fx, fy - 10, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(100,170,230,0.3)';
+      ctx.beginPath(); ctx.ellipse(fx, fy - 10, 6, 2, 0, 0, Math.PI * 2); ctx.fill();
+
+      // Water jets (animated, more dramatic)
+      for (let i = 0; i < 18; i++) {
+        const angle = t * .003 + i * 0.35;
+        const spread = 12 + Math.sin(t * .002) * 3;
+        const px = fx + Math.sin(angle) * spread;
+        const py = fy - 22 + Math.abs(Math.sin(angle * 1.3)) * (-8) + ((angle * 4) % 14);
+        const alpha = .35 + Math.sin(t * .005 + i) * .15;
+        ctx.fillStyle = `rgba(150,200,255,${alpha})`;
+        ctx.fillRect(px | 0, py | 0, 1, 1);
+      }
+      // Upper tier water falling to lower basin
+      for (let i = 0; i < 8; i++) {
+        const angle2 = t * .004 + i * 0.8;
+        const px2 = fx + Math.sin(angle2) * 6;
+        const py2 = fy - 8 + ((t * .04 + i * 7) % 5);
+        ctx.fillStyle = 'rgba(150,210,255,0.3)';
+        ctx.fillRect(px2 | 0, py2 | 0, 1, 1);
+      }
+      // Falling droplets from rim
+      for (let i = 0; i < 16; i++) {
+        const ddx = fx + Math.sin(i * 1.7) * 18;
+        const ddy = fy - 4 + ((t * .05 + i * 9) % 10);
+        ctx.fillStyle = 'rgba(150,210,255,0.2)';
+        ctx.fillRect(ddx | 0, ddy | 0, 1, 1);
+      }
+      // Fountain glow
+      const fgl = ctx.createRadialGradient(fx, fy - 8, 2, fx, fy - 8, 40);
+      fgl.addColorStop(0, 'rgba(100,170,240,0.08)'); fgl.addColorStop(1, 'transparent');
+      ctx.fillStyle = fgl; ctx.beginPath(); ctx.arc(fx, fy - 8, 40, 0, Math.PI * 2); ctx.fill();
+
+      // ---- BEATLES MONUMENT (right side of plaza) ----
+      const bsx = w * .8, bsy = gy + (h - gy) * .45;
+      // Stone bench/pedestal
+      ctx.fillStyle = '#5a5550'; ctx.fillRect(bsx - 12, bsy, 24, 3);
+      ctx.fillStyle = '#6a6560'; ctx.fillRect(bsx - 10, bsy - 1, 20, 1);
+      // Seated figure silhouettes (4 Beatles)
+      ctx.fillStyle = '#2a2a30';
+      for (let i = 0; i < 4; i++) {
+        const bfx = bsx - 8 + i * 5.5;
+        // Body
+        ctx.fillRect(bfx, bsy - 6, 3, 6);
+        // Head
+        ctx.fillRect(bfx, bsy - 8, 3, 2);
+        // Legs
+        ctx.fillRect(bfx, bsy, 2, 2);
+        ctx.fillRect(bfx + 1, bsy, 2, 2);
+      }
+      // One figure has "guitar"
+      ctx.fillStyle = '#3a3a40';
+      ctx.fillRect(bsx - 5, bsy - 4, 1, 5); // guitar neck
+      ctx.fillRect(bsx - 6, bsy - 1, 3, 3); // guitar body
+
+      // ---- LAMP POSTS ----
+      for (let side = -1; side <= 1; side += 2) {
+        const lx = fx + side * 55;
+        ctx.fillStyle = '#3a3530'; ctx.fillRect(lx, gy - 10, 1, 11);
+        ctx.fillStyle = '#4a4540'; ctx.fillRect(lx - 1, gy - 11, 3, 1);
+        // Globe lamp
+        ctx.fillStyle = 'rgba(255,220,150,0.5)'; ctx.fillRect(lx - 1, gy - 12, 3, 2);
+        const llg = ctx.createRadialGradient(lx, gy - 11, 1, lx, gy - 11, 14);
+        llg.addColorStop(0, 'rgba(255,220,150,0.08)'); llg.addColorStop(1, 'transparent');
+        ctx.fillStyle = llg; ctx.fillRect(lx - 14, gy - 24, 28, 24);
+      }
+
+      // ---- STREET / ROAD at bottom ----
+      const ry = h - 8;
+      ctx.fillStyle = '#1a1a20'; ctx.fillRect(0, ry, w, 8);
+      // Road markings
+      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      for (let rx = 0; rx < w; rx += 12) { ctx.fillRect(rx, ry + 4, 6, 0.5); }
+      // Car silhouettes (passing)
+      const carOff = (t * .02) % w;
+      for (let i = 0; i < 3; i++) {
+        const cx2 = (carOff + i * 130) % w;
+        const cc = ['#3a2828', '#28283a', '#2a3828'][i];
+        ctx.fillStyle = cc; ctx.fillRect(cx2, ry + 1, 14, 4);
+        ctx.fillStyle = '#1a1a20'; ctx.fillRect(cx2 + 1, ry + 1, 3, 2); // windshield
+        ctx.fillStyle = '#1a1a20'; ctx.fillRect(cx2 + 10, ry + 1, 3, 2);
+        // Headlight
+        ctx.fillStyle = 'rgba(255,220,100,0.3)'; ctx.fillRect(cx2 + 14, ry + 2, 1, 1);
+        // Taillight
+        ctx.fillStyle = 'rgba(255,50,50,0.3)'; ctx.fillRect(cx2 - 1, ry + 2, 1, 1);
+      }
+
+      // Trees on plaza edges
+      for (let i = 0; i < 3; i++) {
+        const tx2 = w * .02 + i * w * .04;
+        ctx.fillStyle = '#2a1a10'; ctx.fillRect(tx2 + 2, gy + 2, 1, 6);
+        ctx.fillStyle = '#1a3a12'; ctx.fillRect(tx2, gy - 1, 5, 3);
+        ctx.fillStyle = '#2a4a1a'; ctx.fillRect(tx2 + 1, gy - 2, 3, 2);
+      }
+      for (let i = 0; i < 3; i++) {
+        const tx2 = w * .86 + i * w * .04;
+        ctx.fillStyle = '#2a1a10'; ctx.fillRect(tx2 + 2, gy + 2, 1, 6);
+        ctx.fillStyle = '#1a3a12'; ctx.fillRect(tx2, gy - 1, 5, 3);
+        ctx.fillStyle = '#2a4a1a'; ctx.fillRect(tx2 + 1, gy - 2, 3, 2);
+      }
+    }
+
+    function drawPub(t) {
+      const w = GAME_W, h = GAME_H;
+
+      const bg = ctx.createRadialGradient(w * .5, h * .3, 10, w * .5, h * .5, w * .6);
+      bg.addColorStop(0, '#2a1a0e'); bg.addColorStop(.5, '#1a1008'); bg.addColorStop(1, '#0e0a05');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+      // Ceiling
+      const cg = ctx.createLinearGradient(0, 0, 0, h * .12);
+      cg.addColorStop(0, '#1a1008'); cg.addColorStop(1, '#2a1a0e');
+      ctx.fillStyle = cg; ctx.fillRect(0, 0, w, h * .12);
+      for (let x = 0; x < w; x += w / 8) { ctx.fillStyle = 'rgba(0,0,0,0.1)'; ctx.fillRect(x, 0, 1, h * .12); }
+
+      // Back wall
+      const wg = ctx.createLinearGradient(0, h * .12, 0, h * .55);
+      wg.addColorStop(0, '#1e1208'); wg.addColorStop(1, '#181006');
+      ctx.fillStyle = wg; ctx.fillRect(0, h * .12, w, h * .43);
+
+      // Banknotes on wall
+      for (let i = 0; i < 20; i++) {
+        const bx = ((i * 97) % w), by = h * .14 + ((i * 67) % (h * .38));
+        ctx.fillStyle = `rgba(${160 + ((i * 37) % 80)},${150 + ((i * 53) % 80)},${100 + ((i * 29) % 60)},0.12)`;
+        ctx.fillRect(bx, by, 3, 1);
+      }
+
+      // Ceiling lights
+      for (let i = 0; i < 3; i++) {
+        const lx = w * (.25 + i * .25);
+        const lg = ctx.createRadialGradient(lx, h * .12, 1, lx, h * .3, 36);
+        lg.addColorStop(0, 'rgba(255,180,80,0.12)'); lg.addColorStop(.3, 'rgba(255,150,50,0.04)'); lg.addColorStop(1, 'transparent');
+        ctx.fillStyle = lg; ctx.fillRect(0, 0, w, h * .6);
+        ctx.fillStyle = '#4a3520'; ctx.fillRect(lx - 1, h * .1, 3, 2);
+        ctx.fillStyle = 'rgba(255,200,100,0.6)';
+        ctx.fillRect(lx, h * .12, 1, 1);
+      }
+
+      // Bar counter
+      const bar = ctx.createLinearGradient(0, h * .62, 0, h * .67);
+      bar.addColorStop(0, '#4a3018'); bar.addColorStop(.5, '#3a2410'); bar.addColorStop(1, '#2a1808');
+      ctx.fillStyle = bar; ctx.fillRect(0, h * .62, w, h * .05);
+      ctx.fillStyle = 'rgba(255,200,120,0.08)'; ctx.fillRect(0, h * .62, w, 1);
+      ctx.fillStyle = '#120e08'; ctx.fillRect(0, h * .67, w, h * .33);
+
+      // Beer glasses
+      for (let i = 0; i < 2; i++) {
+        const gx = w / 2 - 8 + i * 12, gy = h * .55;
+        ctx.fillStyle = 'rgba(200,180,100,0.15)'; ctx.fillRect(gx, gy, 4, 5);
+        const beer = ctx.createLinearGradient(gx, gy + 1, gx, gy + 4);
+        beer.addColorStop(0, '#c49030'); beer.addColorStop(1, '#a07020');
+        ctx.fillStyle = beer; ctx.fillRect(gx + 1, gy + 1, 2, 3);
+        ctx.fillStyle = '#f0e8d0'; ctx.fillRect(gx, gy, 4, 1);
+        ctx.fillStyle = 'rgba(200,180,100,0.15)'; ctx.fillRect(gx + 3, gy + 1, 1, 2);
+      }
+
+      // Bottles behind bar
+      for (let i = 0; i < 6; i++) {
+        const bx = w * .1 + i * w * .14;
+        ctx.fillStyle = ['#2a4a2a', '#4a2a2a', '#2a2a4a', '#4a4a2a', '#3a3a3a', '#4a3a2a'][i];
+        ctx.fillRect(bx, h * .48, 2, 5);
+        ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(bx, h * .48, 1, 2);
+      }
+
+      // Wall decorations (framed pictures)
+      ctx.fillStyle = '#2a2018'; ctx.fillRect(w * .2, h * .2, 6, 5);
+      ctx.fillStyle = '#3a3028'; ctx.fillRect(w * .21, h * .21, 4, 3);
+      ctx.fillStyle = '#2a2018'; ctx.fillRect(w * .7, h * .22, 5, 4);
+      ctx.fillStyle = '#3a3028'; ctx.fillRect(w * .71, h * .23, 3, 2);
+
+      ctx.fillStyle = '#0e0a06'; ctx.fillRect(0, h * .85, w, h * .15);
+    }
+
+    function drawSteppe(t) {
+      const w = GAME_W, h = GAME_H;
+
+      const sky = ctx.createLinearGradient(0, 0, 0, h * .62);
+      sky.addColorStop(0, '#050510'); sky.addColorStop(.3, '#0a0a20'); sky.addColorStop(.6, '#10102e'); sky.addColorStop(1, '#1a1840');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * .65);
+      drawStars(t);
+
+      // Milky way
+      ctx.globalAlpha = 0.03;
+      ctx.fillStyle = '#8888cc';
+      ctx.beginPath(); ctx.ellipse(w * .6, h * .15, w * .4, h * .08, -.3, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Moon
+      const mx = w * .82, my = h * .1;
+      const mg = ctx.createRadialGradient(mx, my, 3, mx, my, 16);
+      mg.addColorStop(0, 'rgba(240,230,210,0.2)'); mg.addColorStop(1, 'transparent');
+      ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(mx, my, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e8dcc8'; ctx.beginPath(); ctx.arc(mx, my, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#d0c4b0'; ctx.fillRect(mx - 1, my, 1, 1);
+      ctx.fillStyle = '#050510'; ctx.beginPath(); ctx.arc(mx + 2, my - 1, 3, 0, Math.PI * 2); ctx.fill();
+
+      // Mountains
+      const gy = h * .62;
+      ctx.fillStyle = '#12122a';
+      ctx.beginPath(); ctx.moveTo(0, gy);
+      for (let x = 0; x <= w; x += 2) ctx.lineTo(x, gy - 4 - Math.sin(x * .015) * 6 - Math.sin(x * .035 + 2) * 3);
+      ctx.lineTo(w, gy); ctx.fill();
+
+      // Distant ger (Mongolian yurt) on the steppe
+      const gx = w * .18, gy2 = gy - 1;
+      ctx.fillStyle = '#1a1a2a'; ctx.fillRect(gx - 3, gy2 - 2, 6, 2); // walls
+      ctx.fillStyle = '#14142a'; // roof
+      ctx.beginPath(); ctx.moveTo(gx - 4, gy2 - 2); ctx.lineTo(gx, gy2 - 5); ctx.lineTo(gx + 4, gy2 - 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,180,80,0.08)'; ctx.fillRect(gx, gy2 - 1, 1, 1); // tiny door light
+
+      // Another distant ger
+      const gx2 = w * .75;
+      ctx.fillStyle = '#16162a'; ctx.fillRect(gx2 - 2, gy2 - 1, 4, 1);
+      ctx.fillStyle = '#12122a';
+      ctx.beginPath(); ctx.moveTo(gx2 - 3, gy2 - 1); ctx.lineTo(gx2, gy2 - 3); ctx.lineTo(gx2 + 3, gy2 - 1); ctx.fill();
+
+      // Ground
+      const gg = ctx.createLinearGradient(0, gy, 0, h);
+      gg.addColorStop(0, '#2a3a1a'); gg.addColorStop(.2, '#223014'); gg.addColorStop(.5, '#1a2610'); gg.addColorStop(1, '#0f1a08');
+      ctx.fillStyle = gg; ctx.fillRect(0, gy, w, h - gy);
+
+      // Rolling hills
+      for (let layer = 0; layer < 3; layer++) {
+        const off = layer * 1.5, amp = 3 + layer * 2, col = `rgba(${30 - layer * 5},${50 - layer * 8},${20 - layer * 5},0.5)`;
+        ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, gy + 3 + layer * 2);
+        for (let x = 0; x <= w; x += 2) ctx.lineTo(x, gy + 3 + layer * 2 + Math.sin(x * .025 + off) * amp + Math.sin(x * .01 + off * 2) * amp * .5);
+        ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill();
+      }
+
+      // Road
+      const rg = ctx.createLinearGradient(0, gy + 6, 0, h);
+      rg.addColorStop(0, '#1a1a20'); rg.addColorStop(1, '#222228');
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.moveTo(w * .43, gy + 6); ctx.lineTo(w * .57, gy + 6);
+      ctx.lineTo(w * .75, h); ctx.lineTo(w * .25, h); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(w * .43, gy + 6); ctx.lineTo(w * .25, h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(w * .57, gy + 6); ctx.lineTo(w * .75, h); ctx.stroke();
+      ctx.fillStyle = '#f4a261';
+      for (let i = 0; i < 10; i++) {
+        const r = (i + (t * .0003 % 1)) / 10;
+        const dy = gy + 7 + r * (h - gy - 7);
+        const dw = .5 + r * 3;
+        const dh = .5 + r * 1;
+        ctx.globalAlpha = .2 + r * .6;
+        ctx.fillRect(w / 2 - dw / 2, dy, dw, dh);
+      }
+      ctx.globalAlpha = 1;
+
+      const haze = ctx.createLinearGradient(0, gy - 2, 0, gy + 6);
+      haze.addColorStop(0, 'transparent'); haze.addColorStop(1, 'rgba(15,15,30,0.3)');
+      ctx.fillStyle = haze; ctx.fillRect(0, gy - 2, w, 8);
+    }
+
+    function drawGerInterior(t) {
+      const w = GAME_W, h = GAME_H;
+
+      // Warm interior background
+      const bg = ctx.createRadialGradient(w * .5, h * .25, 10, w * .5, h * .5, w * .6);
+      bg.addColorStop(0, '#3a2818'); bg.addColorStop(.4, '#2a1e12'); bg.addColorStop(1, '#1a140e');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+      // Circular ger walls (lattice pattern - khana)
+      const wallY = h * .18, wallH = h * .5;
+      const wallGrad = ctx.createLinearGradient(0, wallY, 0, wallY + wallH);
+      wallGrad.addColorStop(0, '#e8d8c0'); wallGrad.addColorStop(.5, '#d8c8a8'); wallGrad.addColorStop(1, '#c8b898');
+      // Curved walls (left and right)
+      for (let side = 0; side < 2; side++) {
+        const sx = side === 0 ? 0 : w * .7, sw = w * .3;
+        ctx.fillStyle = wallGrad;
+        ctx.beginPath();
+        ctx.moveTo(sx, wallY + wallH);
+        for (let y = wallY + wallH; y >= wallY; y -= 1) {
+          const curve = side === 0 ? (sw - Math.pow((y - wallY) / wallH, 0.5) * sw * 0.6) : (w - sw + Math.pow((y - wallY) / wallH, 0.5) * sw * 0.6);
+          ctx.lineTo(curve, y);
+        }
+        ctx.lineTo(side === 0 ? sw : w - sw, wallY + wallH);
+        ctx.fill();
+      }
+
+      // Back wall (center, felt covering)
+      ctx.fillStyle = '#d0c0a0'; ctx.fillRect(w * .15, wallY, w * .7, wallH);
+
+      // Lattice pattern on walls (khana - crisscross wooden lattice)
+      ctx.strokeStyle = 'rgba(120,90,50,0.12)'; ctx.lineWidth = 0.5;
+      for (let i = 0; i < 20; i++) {
+        const x1 = w * .15 + i * (w * .7 / 20);
+        ctx.beginPath(); ctx.moveTo(x1, wallY); ctx.lineTo(x1 + w * .035, wallY + wallH); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x1 + w * .035, wallY); ctx.lineTo(x1, wallY + wallH); ctx.stroke();
+      }
+
+      // Toono (circular skylight at top center)
+      const tx = w * .5, ty = h * .06;
+      ctx.fillStyle = '#1a2a3a';
+      ctx.beginPath(); ctx.ellipse(tx, ty, 24, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0a1a2a';
+      ctx.beginPath(); ctx.ellipse(tx, ty, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
+      // Sky through toono
+      ctx.fillStyle = '#0a0a2a';
+      ctx.beginPath(); ctx.ellipse(tx, ty, 16, 4, 0, 0, Math.PI * 2); ctx.fill();
+      // Stars through toono
+      for (let i = 0; i < 4; i++) {
+        const sx = tx - 10 + i * 7, sy = ty - 2 + Math.sin(i * 2) * 2;
+        ctx.fillStyle = `rgba(240,230,210,${.3 + Math.sin(t * .005 + i) * .2})`;
+        ctx.fillRect(sx, sy, 1, 1);
+      }
+      // Uni (roof poles) radiating from toono
+      ctx.strokeStyle = 'rgba(100,70,40,0.2)'; ctx.lineWidth = 0.5;
+      for (let i = 0; i < 12; i++) {
+        const angle = i * (Math.PI / 12) + Math.PI * .08;
+        ctx.beginPath();
+        ctx.moveTo(tx + Math.cos(angle) * 18, ty + Math.sin(angle) * 5);
+        ctx.lineTo(tx + Math.cos(angle) * w * .45, wallY);
+        ctx.stroke();
+      }
+
+      // Toono rim
+      ctx.strokeStyle = '#8a6a40'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(tx, ty, 22, 7, 0, 0, Math.PI * 2); ctx.stroke();
+
+      // Colorful Mongolian felt bands on walls
+      const bandY = wallY + wallH * .35;
+      ctx.fillStyle = '#c04040'; ctx.fillRect(w * .15, bandY, w * .7, 2);
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(w * .15, bandY + 2, w * .7, 1);
+      ctx.fillStyle = '#3060a0'; ctx.fillRect(w * .15, bandY + 3, w * .7, 2);
+
+      // ---- GER DOOR (centered on back wall) ----
+      const doorX = w * .5 - 8, doorY = wallY + wallH * .45, doorW = 16, doorH = wallH * .55;
+      // Door frame (orange/painted wood)
+      ctx.fillStyle = '#c06020'; ctx.fillRect(doorX - 2, doorY - 1, doorW + 4, doorH + 1);
+      ctx.fillStyle = '#d07030'; ctx.fillRect(doorX - 1, doorY, doorW + 2, doorH);
+      // Door panels (painted, traditional patterns)
+      ctx.fillStyle = '#d48030'; ctx.fillRect(doorX, doorY, doorW, doorH);
+      // Door center divide
+      ctx.fillStyle = '#c06020'; ctx.fillRect(doorX + doorW / 2 - 0.5, doorY, 1, doorH);
+      // Door decorative panels
+      ctx.fillStyle = '#e09040'; ctx.fillRect(doorX + 2, doorY + 3, doorW / 2 - 3, doorH * .35);
+      ctx.fillStyle = '#e09040'; ctx.fillRect(doorX + doorW / 2 + 1, doorY + 3, doorW / 2 - 3, doorH * .35);
+      // Gold trim on door
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(doorX, doorY, doorW, 1);
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(doorX + 1, doorY + doorH * .4, doorW - 2, 1);
+
+      // ---- FLOOR (wooden/felt) ----
+      const fy = wallY + wallH;
+      const flr = ctx.createLinearGradient(0, fy, 0, h);
+      flr.addColorStop(0, '#6a4a2a'); flr.addColorStop(.3, '#5a3a22'); flr.addColorStop(1, '#4a2a18');
+      ctx.fillStyle = flr; ctx.fillRect(0, fy, w, h - fy);
+
+      // Carpet in center (ornate Mongolian carpet)
+      const cx = w * .25, cy = fy + 3, cw = w * .5, ch2 = (h - fy) * .7;
+      ctx.fillStyle = '#8a2030'; ctx.fillRect(cx, cy, cw, ch2);
+      ctx.fillStyle = '#a03040'; ctx.fillRect(cx + 2, cy + 1, cw - 4, ch2 - 2);
+      // Carpet border pattern
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(cx + 1, cy, cw - 2, 1);
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(cx + 1, cy + ch2 - 1, cw - 2, 1);
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(cx, cy + 1, 1, ch2 - 2);
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(cx + cw - 1, cy + 1, 1, ch2 - 2);
+      // Inner diamond pattern
+      for (let i = 0; i < 4; i++) {
+        const dx2 = cx + cw * .2 + i * cw * .2, dy2 = cy + ch2 * .3;
+        ctx.fillStyle = '#d4a840';
+        ctx.fillRect(dx2, dy2, 2, 2);
+        ctx.fillRect(dx2 - 1, dy2 + 1, 1, 1);
+        ctx.fillRect(dx2 + 2, dy2 + 1, 1, 1);
+      }
+
+      // ---- FURNITURE ----
+      // Stove (center-left, traditional Mongolian stove with chimney)
+      const stx = w * .18, sty = fy - 2;
+      ctx.fillStyle = '#2a2a30'; ctx.fillRect(stx - 4, sty, 8, 4);
+      ctx.fillStyle = '#3a3a40'; ctx.fillRect(stx - 3, sty - 2, 6, 2);
+      // Chimney pipe going up to toono
+      ctx.fillStyle = '#2a2a30'; ctx.fillRect(stx, sty - 2, 1, -(sty - ty - 8));
+      // Fire glow
+      const fglow = ctx.createRadialGradient(stx, sty, 1, stx, sty, 15);
+      fglow.addColorStop(0, 'rgba(255,150,50,0.08)'); fglow.addColorStop(1, 'transparent');
+      ctx.fillStyle = fglow; ctx.fillRect(stx - 15, sty - 15, 30, 20);
+      // Fire flicker
+      ctx.fillStyle = `rgba(255,${140 + Math.sin(t * .01) * 40},50,0.3)`;
+      ctx.fillRect(stx - 1, sty - 1, 2, 1);
+
+      // Low table with food (right side)
+      const tbx = w * .62, tby = fy + 4;
+      ctx.fillStyle = '#5a3a1a'; ctx.fillRect(tbx - 8, tby, 16, 2);
+      ctx.fillStyle = '#6a4a28'; ctx.fillRect(tbx - 7, tby + 2, 14, 1);
+      // Bowls of food on table
+      ctx.fillStyle = '#d0d0c0'; ctx.fillRect(tbx - 5, tby - 1, 3, 1); // bowl 1
+      ctx.fillStyle = '#e0c080'; ctx.fillRect(tbx - 4, tby - 2, 1, 1); // food
+      ctx.fillStyle = '#d0d0c0'; ctx.fillRect(tbx + 2, tby - 1, 3, 1); // bowl 2
+      ctx.fillStyle = '#c08040'; ctx.fillRect(tbx + 3, tby - 2, 1, 1); // food
+
+      // Mongolian cabinet (avdar) on back wall
+      const abx = w * .75, aby = wallY + wallH * .5;
+      ctx.fillStyle = '#c04030'; ctx.fillRect(abx, aby, 12, wallH * .4);
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(abx + 1, aby + 1, 10, 1); // gold trim
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(abx + 1, aby + wallH * .4 - 2, 10, 1);
+      ctx.fillStyle = '#a03020'; ctx.fillRect(abx + 2, aby + 3, 8, wallH * .15); // door panel
+      ctx.fillStyle = '#d4a840'; ctx.fillRect(abx + 5, aby + 5, 2, 1); // handle
+
+      // Beds/cushions on sides
+      for (let side = 0; side < 2; side++) {
+        const bx2 = side === 0 ? w * .05 : w * .82, bw2 = w * .12;
+        ctx.fillStyle = '#8a3040'; ctx.fillRect(bx2, fy + 2, bw2, 5);
+        ctx.fillStyle = '#a04050'; ctx.fillRect(bx2 + 1, fy + 1, bw2 - 2, 2);
+        // Pillow
+        ctx.fillStyle = '#d0c0a0'; ctx.fillRect(bx2 + 2, fy, 4, 2);
+      }
+
+      // Warm ambient light from stove
+      const ambient = ctx.createRadialGradient(w * .35, h * .5, 20, w * .35, h * .5, w * .5);
+      ambient.addColorStop(0, 'rgba(255,180,80,0.04)'); ambient.addColorStop(1, 'transparent');
+      ctx.fillStyle = ambient; ctx.fillRect(0, 0, w, h);
+    }
+
+    function drawRainScene(t) {
+      const w = GAME_W, h = GAME_H;
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#060610'); sky.addColorStop(.5, '#080814'); sky.addColorStop(1, '#0a0a12');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+
+      // City silhouettes
+      for (let i = 0; i < 15; i++) {
+        const bx = i * (w / 15), bw = w / 15 + 1, bh = h * (.12 + Math.sin(i * 1.7 + .5) * .08);
+        const bg = ctx.createLinearGradient(bx, h * .6 - bh, bx, h * .6);
+        bg.addColorStop(0, '#0e0e18'); bg.addColorStop(1, '#0a0a12');
+        ctx.fillStyle = bg; ctx.fillRect(bx, h * .6 - bh, bw, bh + h * .4);
+        for (let wy = h * .6 - bh + 2; wy < h * .58; wy += 3) {
+          for (let wx = bx + 1; wx < bx + bw - 1; wx += 2) {
+            if (Math.sin(i * 4 + wx * .5 + wy * .5) > .5) {
+              ctx.fillStyle = 'rgba(255,200,100,0.06)'; ctx.fillRect(wx, wy, 1, 1);
+            }
+          }
+        }
+      }
+
+      // Wet ground
+      const gnd = ctx.createLinearGradient(0, h * .72, 0, h);
+      gnd.addColorStop(0, '#0a0a14'); gnd.addColorStop(1, '#060610');
+      ctx.fillStyle = gnd; ctx.fillRect(0, h * .72, w, h * .28);
+
+      // Puddles
+      for (let i = 0; i < 5; i++) {
+        const px = w * (.1 + i * .2 + Math.sin(i * 2) * .05), pw = 8 + i * 2;
+        const pg = ctx.createRadialGradient(px, h * .82, 1, px, h * .82, pw);
+        pg.addColorStop(0, 'rgba(80,100,150,0.06)'); pg.addColorStop(1, 'transparent');
+        ctx.fillStyle = pg; ctx.beginPath(); ctx.ellipse(px, h * .82, pw, 2, 0, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Rain
+      for (let i = 0; i < 30; i++) {
+        const rx = (i * 47 + t * .3) % w;
+        const ry = ((t * .6 + i * 73) % h);
+        const alpha = .05 + Math.random() * .1;
+        ctx.fillStyle = `rgba(150,180,220,${alpha})`;
+        ctx.fillRect(rx, ry, 1, 2);
+      }
+
+      const fog = ctx.createLinearGradient(0, h * .5, 0, h * .8);
+      fog.addColorStop(0, 'transparent'); fog.addColorStop(.5, 'rgba(10,10,20,0.2)'); fog.addColorStop(1, 'transparent');
+      ctx.fillStyle = fog; ctx.fillRect(0, h * .5, w, h * .3);
+    }
+
+    function drawDarkRoom(t) {
+      const w = GAME_W, h = GAME_H;
+      ctx.fillStyle = '#040406'; ctx.fillRect(0, 0, w, h);
+
+      // Window
+      const wx = w * .62, wy = h * .15, ww = 24, wh = 18;
+      ctx.fillStyle = '#1a1a22'; ctx.fillRect(wx - 1, wy - 1, ww + 2, wh + 2);
+      const wsky = ctx.createLinearGradient(wx, wy, wx, wy + wh);
+      wsky.addColorStop(0, '#0a0a25'); wsky.addColorStop(1, '#10103a');
+      ctx.fillStyle = wsky; ctx.fillRect(wx, wy, ww, wh);
+      for (let i = 0; i < 5; i++) {
+        ctx.fillStyle = `rgba(200,200,255,${.2 + Math.sin(t * .01 + i) * .15})`;
+        ctx.fillRect(wx + 2 + ((i * 5) % 20), wy + 1 + ((i * 3) % 14), 1, 1);
+      }
+      ctx.fillStyle = '#1a1a22'; ctx.fillRect(wx + ww / 2, wy, 1, wh); ctx.fillRect(wx, wy + wh / 2, ww, 1);
+      ctx.fillStyle = 'rgba(20,15,25,0.6)'; ctx.fillRect(wx - 2, wy - 1, 2, wh + 2); ctx.fillRect(wx + ww, wy - 1, 2, wh + 2);
+
+      // Moonlight beam
+      ctx.save();
+      const beam = ctx.createLinearGradient(wx + ww / 2, wy + wh, wx + ww / 2 - 6, h);
+      beam.addColorStop(0, 'rgba(80,100,180,0.04)'); beam.addColorStop(1, 'transparent');
+      ctx.fillStyle = beam;
+      ctx.beginPath(); ctx.moveTo(wx, wy + wh); ctx.lineTo(wx + ww, wy + wh); ctx.lineTo(wx + ww + 12, h); ctx.lineTo(wx - 12, h); ctx.fill();
+      ctx.restore();
+
+      // Rain on window
+      for (let i = 0; i < 8; i++) {
+        const rx = wx + 1 + ((i * 3) % (ww - 2));
+        const ry = wy + 1 + ((t * .2 + i * 5) % (wh - 2));
+        ctx.fillStyle = 'rgba(130,160,220,0.25)';
+        ctx.fillRect(rx, ry, 1, 1);
+        ctx.fillStyle = 'rgba(130,160,220,0.08)';
+        ctx.fillRect(rx, ry + 1, 1, 2);
+      }
+
+      // Floor
+      const fl = ctx.createLinearGradient(0, h * .78, 0, h);
+      fl.addColorStop(0, '#0a0808'); fl.addColorStop(1, '#060505');
+      ctx.fillStyle = fl; ctx.fillRect(0, h * .78, w, h * .22);
+
+      // Desk
+      ctx.fillStyle = '#2a1e14'; ctx.fillRect(w * .28, h * .64, w * .44, 1);
+      ctx.fillStyle = '#18120e'; ctx.fillRect(w * .32, h * .645, 1, h * .14); ctx.fillRect(w * .65, h * .645, 1, h * .14);
+
+      // Laptop
+      const lx = w * .44, ly = h * .5;
+      const scr = ctx.createLinearGradient(lx, ly, lx, ly + h * .14);
+      scr.addColorStop(0, '#1a2a45'); scr.addColorStop(1, '#15203a');
+      ctx.fillStyle = scr; ctx.fillRect(lx, ly, 16, h * .14);
+      ctx.strokeStyle = '#2a2a3a'; ctx.lineWidth = 1; ctx.strokeRect(lx, ly, 16, h * .14);
+      const sg = ctx.createRadialGradient(lx + 8, ly + h * .07, 2, lx + 8, ly + h * .07, 30);
+      sg.addColorStop(0, 'rgba(40,60,100,0.08)'); sg.addColorStop(1, 'transparent');
+      ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(lx + 8, ly + h * .07, 30, 0, Math.PI * 2); ctx.fill();
+      for (let i = 0; i < 4; i++) {
+        const cw = 4 + Math.sin(i * 2.3) * 3;
+        ctx.fillStyle = 'rgba(100,200,150,0.15)'; ctx.fillRect(lx + 2, ly + 2 + i * 2, cw, 1);
+      }
+      ctx.fillStyle = '#1a1a25'; ctx.fillRect(lx - 1, ly + h * .14, 18, 1);
+
+      // Coffee mug
+      ctx.fillStyle = '#2a2020'; ctx.fillRect(lx + 18, h * .6, 3, 3);
+      ctx.fillStyle = 'rgba(80,50,30,0.3)'; ctx.fillRect(lx + 19, h * .6, 1, 1);
+      for (let i = 0; i < 2; i++) {
+        const sx = lx + 19 + Math.sin(t * .003 + i * 2) * .5;
+        ctx.fillStyle = `rgba(150,150,180,${.03 - i * .01})`;
+        ctx.fillRect(sx | 0, h * .58 - i * 2, 1, 1);
+      }
+    }
+
+    function drawHeartsBg(t) {
+      drawStars(t);
+      const pg = ctx.createRadialGradient(GAME_W * .5, GAME_H * .4, 10, GAME_W * .5, GAME_H * .4, GAME_W * .5);
+      pg.addColorStop(0, 'rgba(229,49,112,0.04)'); pg.addColorStop(1, 'transparent');
+      ctx.fillStyle = pg; ctx.fillRect(0, 0, GAME_W, GAME_H);
+      for (let i = 0; i < 12; i++) {
+        const x = (i * 32 + t * .015) % GAME_W;
+        const y = (GAME_H - ((t * .025 + i * 18) % GAME_H));
+        const size = 2 + Math.sin(i * 1.7) * 1;
+        const alpha = .06 + .08 * Math.sin(t * .002 + i);
+        drawHeart(x, y, size, `rgba(229,49,112,${alpha})`);
+      }
+    }
+
+    function drawHeart(x, y, size, color) {
       ctx.fillStyle = color;
-      ctx.fillRect(x0 + c * s, y0 + r * s, s + 0.5, s + 0.5);
+      ctx.beginPath();
+      ctx.moveTo(x, y + size * .3);
+      ctx.bezierCurveTo(x, y, x - size, y, x - size, y + size * .3);
+      ctx.bezierCurveTo(x - size, y + size * .6, x, y + size * .8, x, y + size);
+      ctx.bezierCurveTo(x, y + size * .8, x + size, y + size * .6, x + size, y + size * .3);
+      ctx.bezierCurveTo(x + size, y, x, y, x, y + size * .3);
+      ctx.fill();
     }
-  }
-}
 
-// ---- AMARTUVSHIN SPRITE (Puffer jacket, beige hoodie, dark hair) ----
-const A_PAL = {
-  '.':null,
-  'o':'#0e0e1a',   // outline
-  'H':'#1a1a35',   // hair dark
-  'h':'#2a2a50',   // hair highlight
-  'S':'#d4a574',   // skin
-  's':'#ba8a58',   // skin shadow
-  'L':'#e8c090',   // skin light
-  'W':'#f0eae4',   // eye white (brighter)
-  'e':'#0e0e1a',   // eye pupil
-  'm':'#b07050',   // mouth
-  'C':'#c8ac86',   // hoodie
-  'c':'#a89068',   // hoodie shadow
-  'B':'#d8c0a0',   // hoodie bright
-  'J':'#505070',   // jacket (BRIGHT purple-gray)
-  'j':'#3c3c58',   // jacket shadow
-  'K':'#686890',   // jacket highlight
-  'P':'#1e1e2c',   // pants
-  'p':'#28283a',   // pants light
-  'G':'#24243a',   // shoe
-  'g':'#1a1a28',   // shoe dark
-  'F':'#d4a574',   // hand (skin)
-};
+    // ---- BACKGROUND RENDERER ----
+    let bgMode = 'stars', bgTime = 0;
+    let charAnimations = []; // {type, x, y, scale, frame, flip, speed}
 
-const A_BODY = [
-  '....ooooo.....',
-  '...ohHHHho....',
-  '..oHHHhHHHo...',
-  '..oHHhHhHHHo..',
-  '..oHHHHHHHHo..',
-  '..oHsSSSSLHo..',
-  '..oSsSSSSLSo..',
-  '..oSWeSSeWSSo.',
-  '..oSSSSSSSSo..',
-  '...oSSmSmSo...',
-  '....oLSSLo....',
-  '.....oSSo.....',
-  '....oBCCBo....',
-  '...oCCBBCCo...',
-  '..oKJcCBCcJKo.',
-  '.oKJJcCBCcJJKo',
-  '.oJKJcCBCcJKjo',
-  'FoKJJcCBCcJJKo',
-  'FoJKJJJJJJJKJo',
-  '.oKJJJJJJJJJKo',
-  '..oJKJJJJJKJo.',
-  '..oJJJJJJJJJo.',
-];
-const A_LEGS_STAND = [
-  '...opPPPPPpo..',
-  '....oPP.PPo...',
-  '....oGg.gGo...',
-];
-const A_LEGS_WALK = [
-  '..opPPo.oPPpo.',
-  '..oGGo...oGGo.',
-  '.ogGo.....oGgo',
-];
+    function renderBg() {
+      bgTime += 16;
+      ctx.clearRect(0, 0, GAME_W, GAME_H);
+      ctx.fillStyle = '#0a0a12'; ctx.fillRect(0, 0, GAME_W, GAME_H);
 
-function drawAmaraa(cx, cy, scale, frame, flip) {
-  const walk = Math.floor(frame) % 4 >= 2;
-  const rows = [...A_BODY, ...(walk ? A_LEGS_WALK : A_LEGS_STAND)];
-  drawSprite(cx, cy, scale, rows, A_PAL, flip);
-}
+      if (bgMode === 'stars') drawStars(bgTime);
+      else if (bgMode === 'city') drawNightCity(bgTime);
+      else if (bgMode === 'fountain') drawFountain(bgTime);
+      else if (bgMode === 'pub') drawPub(bgTime);
+      else if (bgMode === 'steppe') drawSteppe(bgTime);
+      else if (bgMode === 'ger') drawGerInterior(bgTime);
+      else if (bgMode === 'rain') drawRainScene(bgTime);
+      else if (bgMode === 'darkroom') drawDarkRoom(bgTime);
+      else if (bgMode === 'hearts') { drawStars(bgTime); drawHeartsBg(bgTime); }
+      else if (bgMode === 'walk') drawWalkScene();
 
-// ---- MAAGII SPRITE (Jean shorts, white shirt, long brown hair, pretty!) ----
-const M_PAL = {
-  '.':null,
-  'o':'#0e0e1a',   // outline
-  'H':'#4a3020',   // hair dark brown
-  'h':'#6a4c34',   // hair mid
-  'R':'#3a2010',   // hair darkest
-  'r':'#8a6848',   // hair highlight shine
-  'S':'#eaC8a4',   // skin
-  's':'#d4ae88',   // skin shadow
-  'L':'#f4d8b8',   // skin highlight
-  'B':'#f0a0a0',   // blush (rosy pink)
-  'W':'#f0eae4',   // eye white
-  'e':'#2a1810',   // eye pupil (soft brown)
-  'm':'#e0a090',   // mouth (pink lips!)
-  'T':'#f0eae0',   // white shirt
-  't':'#dcd0c0',   // shirt shadow
-  'I':'#f8f2ea',   // shirt bright
-  'J':'#4466aa',   // jean shorts (blue!)
-  'j':'#3a5890',   // jean shadow
-  'K':'#5578bb',   // jean highlight
-  'P':'#eaC8a4',   // bare legs (skin - she's in shorts!)
-  'p':'#d4ae88',   // legs shadow
-  'G':'#f0eae0',   // white sneakers
-  'g':'#dcd0c0',   // sneaker shadow
-  'D':'#eaC8a4',   // hand (skin)
-};
+      // Draw animated characters
+      for (const ch of charAnimations) {
+        ch.frame = (ch.frame || 0) + (ch.speed || 0);
+        if (ch.type === 'amaraa') drawAmaraa(ch.x, ch.y, ch.scale || 2, Math.floor(ch.frame), ch.flip);
+        if (ch.type === 'maagii') drawMaagii(ch.x, ch.y, ch.scale || 2, Math.floor(ch.frame), ch.flip);
+        if (ch.type === 'mom') drawMom(ch.x, ch.y, ch.scale || 2, Math.floor(ch.frame), ch.flip);
+      }
 
-const M_BODY = [
-  '....ooooo.....',
-  '...oHhrHhHo...',
-  '..oHHhHhHHHo..',
-  '..oHHHHHHHHo..',
-  '..oHHHHHHHHo..',
-  '..oHsSSSLsHo..',
-  '..oBSSSSSsBo..',
-  '..oSWeSSeWSo..',
-  '..oSSSsSsSso..',
-  '...oSLmmLSo...',
-  '..oHoLSSLoHo..',
-  '..oH.oSSo.Ho..',
-  '..ohoTIITtoho.',
-  '...otTIITto...',
-  '...otTIITto...',
-  'D..otTTTTto..D',
-  '...otTTTTto...',
-  '...oJJKKJJo...',
-  '....ojJKJjo...',
-  '....oJJKJo....',
-  '.....oPPo.....',
-];
-const M_LEGS_STAND = [
-  '....oPP.PPo...',
-  '....oPp.pPo...',
-  '....oGg.gGo...',
-];
-const M_LEGS_WALK = [
-  '...oPPo.oPPo..',
-  '..oGGo...oGGo.',
-  '.ogGo.....oGgo',
-];
+      requestAnimationFrame(renderBg);
+    }
+    renderBg();
 
-function drawMaagii(cx, cy, scale, frame, flip) {
-  const walk = Math.floor(frame) % 4 >= 2;
-  const rows = [...M_BODY, ...(walk ? M_LEGS_WALK : M_LEGS_STAND)];
-  drawSprite(cx, cy, scale, rows, M_PAL, flip);
-}
+    // ---- INTERACTIVE WALK ENGINE ----
+    let walkActive = false, walkX = 0, walkTarget = 600, walkFrame = 0, walkDir = 0;
+    let walkMaagiiX = 560;
+    let walkReached = false, walkResolve = null;
 
-// ---- MOTHER SPRITE (Amaraa's mom, Asian older female, traditional Mongolian deel) ----
-const MOM_PAL = {
-  '.':null,
-  'o':'#0e0e1a',   // outline
-  'H':'#1a1a28',   // hair dark (black, tied up bun)
-  'h':'#2a2a38',   // hair mid
-  'r':'#3a3a48',   // hair gray/shine
-  'S':'#d4a888',   // skin (warm, mature)
-  's':'#c09474',   // skin shadow
-  'L':'#e4bca0',   // skin highlight
-  'B':'#d4a0a0',   // blush (rosy cheeks - warm mom)
-  'W':'#e8e0d8',   // eye white
-  'e':'#1a1420',   // eye pupil
-  'm':'#d09080',   // mouth (warm gentle smile)
-  'E':'#c88070',   // earring
-  'D':'#6a2030',   // deel (traditional robe - deep red/maroon)
-  'd':'#5a1828',   // deel shadow
-  'G':'#d4a840',   // golden trim/sash
-  'g':'#b89030',   // gold shadow
-  'T':'#7a2838',   // deel highlight
-  'P':'#3a1a20',   // deel bottom/boots
-  'p':'#4a2a30',   // boots lighter
-  'F':'#d4a888',   // hand (skin)
-};
+    function drawWalkScene() {
+      const w = GAME_W, h = GAME_H;
+      const progress = Math.min(walkX / walkTarget, 1);
 
-const MOM_BODY = [
-  '....oHHHo.....',  // bun on top
-  '...oHHrHHo....',  // hair bun round
-  '..oHHHHHHHo...',  // hair wide (feminine volume)
-  '..oHHhHhHHo...',  // hair sides frame face
-  '..oHHHHHHHHo..',  // hair covers forehead
-  '..oBsSSSLsBo..',  // face with blush cheeks
-  '..oSWeSSeWSo..',  // eyes (soft)
-  '..oSSSsSsSso..',  // nose
-  '..EoSLmmLSoE..',  // mouth smile + earrings
-  '..oHoLSSLoHo..',  // chin, hair on sides
-  '..oH.oSSo.Ho..',  // neck, hair on sides
-  '....oGGGGo....',  // golden collar
-  '...oGDDDDGo...',  // deel top with gold trim
-  '..oDDDDDDDDo..',  // deel body
-  '.oDdDDGGDDdDo.',  // deel with sash
-  'FoDdDDGGDDdDoF',  // hands + sash center
-  '.oDdDDDDDDdDo.',  // deel lower
-  '.oDTDDDDDDTDo.',  // deel with highlights
-  '..oDDDDDDDDo..',  // deel skirt
-  '..oDDDDDDDDo..',  // deel skirt
-  '...oPPPPPPo...',  // boots under deel
-];
-const MOM_LEGS_STAND = [
-  '...oPPPPPPo...',
-  '....opp.ppo...',
-  '....oPP.PPo...',
-];
+      const sky = ctx.createLinearGradient(0, 0, 0, h * .7);
+      const darkR = 6 + progress * 30, darkG = 6 + progress * 15, darkB = 16 + progress * 20;
+      const midR = 10 + progress * 60, midG = 10 + progress * 30, midB = 20 + progress * 30;
+      sky.addColorStop(0, `rgb(${darkR | 0},${darkG | 0},${darkB | 0})`);
+      sky.addColorStop(1, `rgb(${midR | 0},${midG | 0},${midB | 0})`);
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
 
-function drawMom(cx, cy, scale, frame, flip) {
-  const rows = [...MOM_BODY, ...MOM_LEGS_STAND];
-  drawSprite(cx, cy, scale, rows, MOM_PAL, flip);
-}
+      if (progress < .6) { ctx.globalAlpha = 1 - progress * 1.6; drawStars(bgTime); ctx.globalAlpha = 1; }
 
-// ---- ENVIRONMENT DRAWING ----
-let stars = [];
-function initStars(n=50) { stars = []; for (let i=0;i<n;i++) stars.push({x:Math.random()*GAME_W,y:Math.random()*GAME_H,s:1,sp:Math.random()*.02+.005,o:Math.random()*Math.PI*2,b:Math.random()*.5+.5}); }
-initStars();
-function drawStars(t) { for (const s of stars) { const a = s.b*(.5+.5*Math.sin(t*s.sp+s.o)); ctx.fillStyle=`rgba(240,230,211,${a})`; ctx.fillRect(s.x|0,s.y|0,1,1); } }
+      if (progress > .3) {
+        const ga = (progress - .3) * .2;
+        const dg = ctx.createRadialGradient(w * .85, h * .35, 4, w * .85, h * .35, w * .4);
+        dg.addColorStop(0, `rgba(229,80,80,${ga})`);
+        dg.addColorStop(.5, `rgba(229,49,112,${ga * .3})`);
+        dg.addColorStop(1, 'transparent');
+        ctx.fillStyle = dg; ctx.fillRect(0, 0, w, h);
+      }
 
-// ---- 32-BIT SMOOTH ENVIRONMENTS ----
+      const groundY = h * .72;
+      const gg = ctx.createLinearGradient(0, groundY, 0, h);
+      gg.addColorStop(0, `rgb(${15 + progress * 20 | 0},${20 + progress * 15 | 0},${10 + progress * 8 | 0})`);
+      gg.addColorStop(1, `rgb(${8 + progress * 12 | 0},${12 + progress * 10 | 0},${5 + progress * 5 | 0})`);
+      ctx.fillStyle = gg; ctx.fillRect(0, groundY, w, h - groundY);
 
-function drawNightCity(t) {
-  const w=GAME_W, h=GAME_H;
-  const sky=ctx.createLinearGradient(0,0,0,h*.7);
-  sky.addColorStop(0,'#05051a'); sky.addColorStop(0.4,'#0a0a2a'); sky.addColorStop(0.8,'#12122e'); sky.addColorStop(1,'#1a1535');
-  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
-  drawStars(t);
+      const scrollX = -walkX * .5;
 
-  // Distant buildings
-  const far=[.18,.32,.42,.28,.5,.35,.4,.3,.48,.22,.38,.44,.25,.36,.45,.33,.5,.27];
-  for(let i=0;i<far.length;i++){
-    const bx=i*(w/far.length),bw=w/far.length+1,bh=h*far[i]*.35;
-    const bg=ctx.createLinearGradient(bx,h*.55-bh,bx,h*.55);
-    bg.addColorStop(0,'#10102a'); bg.addColorStop(1,'#0c0c20');
-    ctx.fillStyle=bg; ctx.fillRect(bx,h*.55-bh,bw,bh+h*.45);
-    for(let wy=h*.55-bh+3;wy<h*.53;wy+=3){
-      for(let wx=bx+1;wx<bx+bw-1;wx+=2){
-        const lit=Math.sin(i*3.7+wx*.5+wy*.5)>.3;
-        ctx.fillStyle=lit?'rgba(255,200,100,0.12)':'rgba(30,30,60,0.3)';
-        ctx.fillRect(wx,wy,1,1);
+      // Background mountains/hills
+      ctx.fillStyle = `rgba(${12 + progress * 8 | 0},${18 + progress * 8 | 0},${25 + progress * 10 | 0},0.6)`;
+      ctx.beginPath(); ctx.moveTo(0, groundY);
+      for (let x = 0; x <= w; x += 3) ctx.lineTo(x, groundY - 6 - Math.sin(x * .02) * 4 - Math.sin(x * .04 + 1) * 2);
+      ctx.lineTo(w, groundY); ctx.fill();
+
+      // Trees (bigger, more detailed)
+      for (let i = 0; i < 20; i++) {
+        const tx = ((i * 40 + scrollX * .2) % (w + 100)) - 50;
+        const th = 10 + ((i * 3) % 6);
+        const treeC = progress * .5;
+        // Trunk
+        ctx.fillStyle = `rgba(${30 + treeC * 20 | 0},${20 + treeC * 10 | 0},${12 + treeC * 8 | 0},0.8)`;
+        ctx.fillRect(tx, groundY - th, 2, th);
+        // Canopy (bigger)
+        ctx.fillStyle = `rgba(${20 + treeC * 20 | 0},${40 + treeC * 15 | 0},${18 + treeC * 10 | 0},0.6)`;
+        ctx.beginPath(); ctx.arc(tx + 1, groundY - th - 1, 3 + i % 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(${25 + treeC * 18 | 0},${50 + treeC * 12 | 0},${22 + treeC * 8 | 0},0.4)`;
+        ctx.beginPath(); ctx.arc(tx, groundY - th + 1, 2 + i % 2, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Grass patches on ground
+      for (let i = 0; i < 30; i++) {
+        const gx = ((i * 31 + scrollX * .15) % (w + 60)) - 30;
+        const gc = progress * .4;
+        ctx.fillStyle = `rgba(${25 + gc * 20 | 0},${40 + gc * 15 | 0},${15 + gc * 10 | 0},0.3)`;
+        ctx.fillRect(gx, groundY + 1, 3, 1);
+        ctx.fillRect(gx + 1, groundY, 1, 1);
+      }
+
+      // Small flowers (appearing with progress)
+      if (progress > .2) {
+        for (let i = 0; i < 12; i++) {
+          const ffx = ((i * 53 + scrollX * .1) % (w + 80)) - 40;
+          const ffy = groundY + 1 + ((i * 3) % 3);
+          const fa = (progress - .2) * .8;
+          const fc = ['rgba(229,80,120,', 'rgba(255,200,80,', 'rgba(200,120,220,'][i % 3];
+          ctx.fillStyle = fc + fa + ')';
+          ctx.fillRect(ffx, ffy, 1, 1);
+        }
+      }
+
+      // Rain (early part)
+      if (progress < .5) {
+        const rAlpha = .08 * (1 - progress * 2);
+        for (let i = 0; i < 20; i++) {
+          const rx = (i * 47 + bgTime * .3) % w;
+          const ry = ((bgTime * .5 + i * 73) % h);
+          ctx.fillStyle = `rgba(150,180,220,${rAlpha})`;
+          ctx.fillRect(rx, ry, 1, 2);
+        }
+      }
+
+      // Road (lighter, more visible)
+      const roadBright = 30 + progress * 25;
+      ctx.fillStyle = `rgba(${roadBright + 10 | 0},${roadBright + 8 | 0},${roadBright + 5 | 0},1)`;
+      ctx.fillRect(0, groundY + 3, w, 6);
+      // Road edges
+      ctx.fillStyle = `rgba(${roadBright + 20 | 0},${roadBright + 15 | 0},${roadBright + 10 | 0},0.3)`;
+      ctx.fillRect(0, groundY + 3, w, 1);
+      ctx.fillRect(0, groundY + 8, w, 1);
+      // Center line dashes
+      for (let i = 0; i < 30; i++) {
+        const dx = ((i * 14 + scrollX) % (w + 20)) - 10;
+        ctx.fillStyle = `rgba(200,200,180,${.12 + progress * .12})`;
+        ctx.fillRect(dx, groundY + 6, 5, 0.5);
+      }
+      // Road shoulder markings
+      for (let i = 0; i < 20; i++) {
+        const dx = ((i * 18 + scrollX * .8) % (w + 30)) - 15;
+        ctx.fillStyle = `rgba(150,150,140,${.06 + progress * .06})`;
+        ctx.fillRect(dx, groundY + 4, 2, 0.5);
+      }
+
+      // Lamp posts along the road
+      for (let i = 0; i < 5; i++) {
+        const lpx = ((i * 90 + scrollX * .3) % (w + 120)) - 60;
+        ctx.fillStyle = `rgba(60,55,50,0.6)`;
+        ctx.fillRect(lpx, groundY - 8, 1, 11);
+        ctx.fillStyle = `rgba(255,220,150,${.15 + progress * .15})`;
+        ctx.fillRect(lpx - 1, groundY - 9, 3, 1);
+        // Lamp glow
+        const lg = ctx.createRadialGradient(lpx, groundY - 9, 1, lpx, groundY - 9, 8);
+        lg.addColorStop(0, `rgba(255,220,150,${.04 + progress * .04})`); lg.addColorStop(1, 'transparent');
+        ctx.fillStyle = lg; ctx.fillRect(lpx - 8, groundY - 16, 16, 12);
+      }
+
+      // Maagii ahead
+      const msx = w * .5 + (walkMaagiiX - walkX) * .5;
+      if (msx < w + 40) {
+        const dist = Math.max(1, (msx - w * .35) / w);
+        const ga = Math.max(0, .2 - dist * .15);
+        const glow = ctx.createRadialGradient(msx, groundY - 1, 1, msx, groundY - 1, 24 / dist);
+        glow.addColorStop(0, `rgba(229,49,112,${ga})`);
+        glow.addColorStop(.5, `rgba(255,150,100,${ga * .3})`);
+        glow.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow; ctx.fillRect(msx - 40, groundY - 40, 80, 60);
+        if (msx < w + 10) drawMaagii(msx, groundY + 1, 2, Math.floor(bgTime * .002), false);
+      }
+
+      // Amartuvshin
+      const asx = w * .35;
+      walkFrame += walkDir !== 0 ? .15 : 0;
+      drawAmaraa(asx, groundY + 1, 2, Math.floor(walkFrame), walkDir < 0);
+
+      // Distance text (2,714 km - Mongolia to Korea)
+      const kmRaw = Math.max(0, (walkMaagiiX - walkX) / walkMaagiiX);
+      const km = Math.round(kmRaw * 2714);
+      if (km > 0) {
+        ctx.fillStyle = 'rgba(229,49,112,0.8)';
+        ctx.font = "4px 'Press Start 2P'"; ctx.textAlign = 'center';
+        ctx.fillText(km.toLocaleString() + ' km to Maagii', w / 2, h * .1);
+      }
+      ctx.textAlign = 'left';
+    }
+
+    function startWalk() {
+      return new Promise(resolve => {
+        walkActive = true; walkX = 0; walkReached = false; walkResolve = resolve;
+        bgMode = 'walk';
+      });
+    }
+
+    function updateWalk() {
+      if (!walkActive) return;
+      if (walkDir !== 0) {
+        walkX += walkDir * 1;
+        walkX = Math.max(0, walkX);
+      }
+      if (walkX >= walkMaagiiX - 10 && !walkReached) {
+        walkReached = true;
+        walkActive = false;
+        walkDir = 0;
+        setTimeout(() => {
+          spawnHearts(15);
+          setTimeout(() => { if (walkResolve) walkResolve(); }, 2000);
+        }, 500);
       }
     }
-  }
+    setInterval(updateWalk, 16);
 
-  // Near buildings
-  const near=[.3,.55,.45,.6,.35,.52,.65,.4,.58,.48,.55,.38];
-  for(let i=0;i<near.length;i++){
-    const bx=i*(w/near.length),bw=w/near.length+1,bh=h*near[i]*.3;
-    const bg=ctx.createLinearGradient(bx,h*.65-bh,bx,h*.65);
-    bg.addColorStop(0,'#0a0a18'); bg.addColorStop(1,'#080814');
-    ctx.fillStyle=bg; ctx.fillRect(bx,h*.65-bh,bw,bh+h*.35);
-    for(let wy=h*.65-bh+3;wy<h*.63;wy+=3){
-      for(let wx=bx+1;wx<bx+bw-1;wx+=2){
-        const lit=Math.sin(i*5.3+wx*.6+wy*.3)>.2;
-        if(lit){
-          const wc=Math.random()>.5?'rgba(255,180,80,0.25)':'rgba(200,220,255,0.15)';
-          ctx.fillStyle=wc; ctx.fillRect(wx,wy,1,1);
+    // Key/touch controls for walk
+    document.addEventListener('keydown', e => {
+      if (!walkActive) return;
+      if (e.key === 'ArrowRight' || e.key === 'd') walkDir = 1;
+      if (e.key === 'ArrowLeft' || e.key === 'a') walkDir = -1;
+    });
+    document.addEventListener('keyup', e => {
+      if (!walkActive) return;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'ArrowLeft' || e.key === 'a') walkDir = 0;
+    });
+    // Touch: tap right half = go right, left half = go left
+    let touchWalking = false;
+    document.addEventListener('touchstart', e => {
+      if (!walkActive) return;
+      e.preventDefault();
+      const x = e.touches[0].clientX;
+      walkDir = x > window.innerWidth / 2 ? 1 : -1;
+      touchWalking = true;
+    }, { passive: false });
+    document.addEventListener('touchend', () => {
+      if (touchWalking) { walkDir = 0; touchWalking = false; }
+    });
+
+    // ---- TYPEWRITER ----
+    function typeWriter(el, text, speed = 35) {
+      return new Promise(resolve => {
+        const parsed = text.replace(/\{h\}(.*?)\{\/h\}/g, '<span class="highlight">$1</span>')
+          .replace(/\{g\}(.*?)\{\/g\}/g, '<span class="gold">$1</span>')
+          .replace(/\{gr\}(.*?)\{\/gr\}/g, '<span class="green">$1</span>');
+        const stripped = parsed.replace(/<[^>]*>/g, '');
+        let ci = 0;
+        function type() {
+          if (ci <= stripped.length) {
+            let display = '', ri = 0, inTag = false;
+            for (let j = 0; j < parsed.length && ri <= ci; j++) {
+              if (parsed[j] === '<') { inTag = true; display += parsed[j]; }
+              else if (parsed[j] === '>') { inTag = false; display += parsed[j]; }
+              else if (inTag) display += parsed[j];
+              else { if (ri < ci) display += parsed[j]; ri++; }
+            }
+            const ot = (display.match(/<span[^>]*>/g) || []).length;
+            const ct = (display.match(/<\/span>/g) || []).length;
+            for (let t = 0; t < ot - ct; t++) display += '</span>';
+            el.innerHTML = display + '<span style="animation:blink .5s infinite">_</span>';
+            ci++; setTimeout(type, speed);
+          } else { el.innerHTML = parsed; resolve(); }
+        }
+        type();
+      });
+    }
+
+    // ---- SCENE ENGINE ----
+    const scenes = []; let currentScene = -1, currentDI = 0, isTransitioning = false, canAdvance = true;
+
+    function createSceneEl(id) { const d = document.createElement('div'); d.className = 'scene'; d.id = id; game.appendChild(d); return d; }
+
+    async function showScene(i) {
+      if (isTransitioning) return;
+      isTransitioning = true;
+      const cur = game.querySelector('.scene.active');
+      if (cur) { cur.classList.remove('active'); await sleep(800); }
+      currentScene = i; currentDI = 0;
+      charAnimations = [];
+      const sc = scenes[i];
+      if (sc.bg) bgMode = sc.bg;
+      if (sc.onEnter) await sc.onEnter();
+      const el = document.getElementById(sc.id);
+      if (el) { el.classList.add('active'); await sleep(400); }
+      if (sc.dialogues && sc.dialogues.length > 0) await showDlg(sc, 0);
+      isTransitioning = false;
+    }
+
+    async function showDlg(sc, idx) {
+      if (idx >= sc.dialogues.length) { if (sc.onComplete) await sc.onComplete(); return; }
+      currentDI = idx;
+      const d = sc.dialogues[idx], el = document.getElementById(sc.id);
+      if (d.action === 'showPhoto') { showPhoto(d.photo, d.caption); await sleep(300); }
+      if (d.action === 'hidePhoto') { hidePhoto(); await sleep(300); }
+      if (d.action === 'showVisa') { showVisaStamp(el); await sleep(1500); }
+      if (d.action === 'showKm') { await showKmCounter(el); }
+      if (d.action === 'wait') { await sleep(d.duration || 2000); advanceDlg(); return; }
+      if (d.action === 'changeBg') { bgMode = d.bg; }
+      if (d.action === 'addChar') { charAnimations.push(d.char); }
+      if (d.action === 'clearChars') { charAnimations = []; }
+      if (d.action === 'moveChars' && d.fn) { await d.fn(); }
+      if (d.action === 'walk') {
+        const walkEl = document.getElementById(sc.id);
+        const inst = walkEl.querySelector('.walk-instructions');
+        if (inst) inst.style.opacity = '1';
+        await startWalk();
+        if (inst) inst.style.opacity = '0';
+        advanceDlg(); return;
+      }
+      if (d.text) {
+        const te = el.querySelector('.dialogue-text');
+        if (te) {
+          const sp = el.querySelector('.speaker-name');
+          if (sp) sp.textContent = d.speaker || '';
+          canAdvance = false;
+          await typeWriter(te, d.text, d.speed || 35);
+          canAdvance = true;
         }
       }
     }
-  }
 
-  // Ground/sidewalk
-  const gnd=ctx.createLinearGradient(0,h*.72,0,h);
-  gnd.addColorStop(0,'#0c0c14'); gnd.addColorStop(.3,'#0a0a10'); gnd.addColorStop(1,'#060608');
-  ctx.fillStyle=gnd; ctx.fillRect(0,h*.72,w,h*.28);
-  ctx.fillStyle='#0e0e14'; ctx.fillRect(0,h*.76,w,h*.14);
-  ctx.fillStyle='#1a1a22'; ctx.fillRect(0,h*.755,w,1);
+    function advanceDlg() {
+      if (isTransitioning || !canAdvance) return;
+      const sc = scenes[currentScene];
+      if (!sc || !sc.dialogues) return;
+      const ni = currentDI + 1;
+      if (ni >= sc.dialogues.length) { if (currentScene + 1 < scenes.length) showScene(currentScene + 1); }
+      else showDlg(sc, ni);
+    }
 
-  // Street lights
-  for(let i=0;i<4;i++){
-    const lx=w*(.15+i*.25);
-    ctx.fillStyle='#2a2a35'; ctx.fillRect(lx,h*.5,1,h*.26);
-    ctx.fillStyle='#3a3a45'; ctx.fillRect(lx-2,h*.5,4,1);
-    const lg=ctx.createRadialGradient(lx,h*.76,1,lx,h*.76,20);
-    lg.addColorStop(0,'rgba(255,200,120,0.08)'); lg.addColorStop(.5,'rgba(255,180,80,0.03)'); lg.addColorStop(1,'transparent');
-    ctx.fillStyle=lg; ctx.fillRect(lx-20,h*.5,40,h*.4);
-  }
-
-  // Neon signs on buildings
-  ctx.fillStyle='rgba(229,49,112,0.15)'; ctx.fillRect(w*.15,h*.42,8,3);
-  ctx.fillStyle='rgba(100,200,255,0.12)'; ctx.fillRect(w*.62,h*.44,6,2);
-  ctx.fillStyle='rgba(255,200,50,0.1)'; ctx.fillRect(w*.38,h*.48,5,2);
-
-  // Pixel art trees/bushes on sidewalk
-  for(let i=0;i<3;i++){
-    const tx=w*(.08+i*.35);
-    // Tree trunk
-    ctx.fillStyle='#1a1810'; ctx.fillRect(tx,h*.69,1,4);
-    // Tree canopy (round pixel bush)
-    ctx.fillStyle='#1a2a12'; ctx.fillRect(tx-2,h*.66,5,3);
-    ctx.fillStyle='#223316'; ctx.fillRect(tx-1,h*.65,3,1);
-    ctx.fillStyle='#2a3a1a'; ctx.fillRect(tx,h*.66,1,1);
-  }
-
-  // Bench
-  ctx.fillStyle='#2a2015'; ctx.fillRect(w*.78,h*.71,6,1);
-  ctx.fillStyle='#1a1510'; ctx.fillRect(w*.79,h*.72,1,2); ctx.fillRect(w*.83,h*.72,1,2);
-
-  // Wet ground reflections
-  ctx.globalAlpha=0.03;
-  ctx.scale(1,-1); ctx.translate(0,-h*1.52);
-  for(let i=0;i<near.length;i++){
-    const bx=i*(w/near.length),bw=w/near.length+1;
-    ctx.fillStyle='#ff8'; ctx.fillRect(bx,h*.65,bw,4);
-  }
-  ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1;
-}
-
-function drawFountain(t) {
-  const w=GAME_W, h=GAME_H;
-
-  // Evening sky (warm sunset feel for UB evening)
-  const sky=ctx.createLinearGradient(0,0,0,h*.35);
-  sky.addColorStop(0,'#0a0a2a'); sky.addColorStop(0.4,'#1a1040'); sky.addColorStop(0.7,'#2a1848'); sky.addColorStop(1,'#3a2050');
-  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h*.35);
-  drawStars(t);
-
-  // ---- STATE DEPARTMENT STORE (Soviet-era UB landmark) ----
-  const bx=w*.06, bw=w*.88; // building x and width
-  const storeY=h*.08, storeH=h*.58;
-
-  // Main facade (pink/beige Soviet stone)
-  const facade=ctx.createLinearGradient(0,storeY,0,storeY+storeH);
-  facade.addColorStop(0,'#c8a898'); facade.addColorStop(.3,'#d0b0a0'); facade.addColorStop(.6,'#c8a898'); facade.addColorStop(1,'#b89888');
-  ctx.fillStyle=facade; ctx.fillRect(bx,storeY,bw,storeH);
-
-  // Roof parapet (flat Soviet top)
-  ctx.fillStyle='#a08878'; ctx.fillRect(bx-1,storeY-2,bw+2,3);
-  ctx.fillStyle='#b09888'; ctx.fillRect(bx,storeY-3,bw,2);
-  ctx.fillStyle='#c0a898'; ctx.fillRect(bx+1,storeY-4,bw-2,1);
-
-  // "1921" and "2023" on rooftop
-  ctx.fillStyle='#d4b870';
-  ctx.font='4px monospace';
-  ctx.textAlign='center';
-  ctx.fillText('1921',bx+bw*.25,storeY-1);
-  ctx.fillText('2023',bx+bw*.75,storeY-1);
-
-  // Flags on roof
-  for(let i=0;i<4;i++){
-    const fx2=bx+bw*.15+i*bw*.24;
-    ctx.fillStyle='#4a4440'; ctx.fillRect(fx2,storeY-8,1,6); // pole
-    // Mongolian flag (red-blue-red)
-    const fwave=Math.sin(t*.004+i)*0.5;
-    ctx.fillStyle='#c03030'; ctx.fillRect(fx2+1,storeY-8+fwave,3,1);
-    ctx.fillStyle='#2050a0'; ctx.fillRect(fx2+1,storeY-7+fwave,3,1);
-    ctx.fillStyle='#c03030'; ctx.fillRect(fx2+1,storeY-6+fwave,3,1);
-  }
-
-  // ---- GRID OF WINDOWS (Soviet style: 7 rows x 9 columns) ----
-  const winStartY=storeY+4;
-  const winRows=7, winCols=9;
-  const winW=bw*.075, winH=storeH*.065;
-  const winGapX=(bw-winCols*winW)/(winCols+1);
-  const winGapY=(storeH*.7-winRows*winH)/(winRows+1);
-
-  for(let r=0;r<winRows;r++){
-    for(let c=0;c<winCols;c++){
-      const wx=bx+winGapX+(winGapX+winW)*c;
-      const wy=winStartY+winGapY+(winGapY+winH)*r;
-
-      // Skip center windows for golden balcony area (rows 3-4, cols 3-5)
-      if(r>=3 && r<=4 && c>=3 && c<=5) continue;
-
-      // Window recess
-      ctx.fillStyle='#8a7060'; ctx.fillRect(wx-0.5,wy-0.5,winW+1,winH+1);
-      // Window glass - some lit warm, some dark
-      const lit=(c+r*3+7)%5!==0;
-      if(lit){
-        const wg=ctx.createLinearGradient(wx,wy,wx,wy+winH);
-        wg.addColorStop(0,'#f0d890'); wg.addColorStop(1,'#e0c870');
-        ctx.fillStyle=wg;
-      } else {
-        ctx.fillStyle='#3a4a5a';
+    // ---- PHOTO SYSTEM ----
+    let photoCont = null;
+    function createPhotoSys() { photoCont = document.createElement('div'); photoCont.className = 'photo-container'; photoCont.innerHTML = '<div class="photo-frame"><img id="photoImg" src="" alt=""><div class="photo-hearts" id="photoHearts"></div></div><div class="photo-caption" id="photoCaption"></div>'; game.appendChild(photoCont); }
+    createPhotoSys();
+    function showPhoto(s, c) {
+      $('#photoImg').src = 'photos/' + s; $('#photoCaption').textContent = c || '';
+      // Create floating hearts around the photo
+      const hc = $('#photoHearts'); hc.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const h = document.createElement('span'); h.className = 'photo-heart'; h.textContent = '♥';
+        h.style.left = (Math.random() * 200 - 100) + 'px';
+        h.style.animationDelay = (0.2 + Math.random() * 1.5) + 's';
+        h.style.fontSize = (10 + Math.random() * 12) + 'px';
+        hc.appendChild(h);
       }
-      ctx.fillRect(wx,wy,winW,winH);
-      // Window divider (cross)
-      ctx.fillStyle='#9a8878'; ctx.fillRect(wx+winW/2,wy,0.5,winH);
-      ctx.fillStyle='#9a8878'; ctx.fillRect(wx,wy+winH/2,winW,0.5);
+      photoCont.classList.add('visible');
     }
-  }
+    function hidePhoto() { photoCont.classList.remove('visible'); }
 
-  // ---- GOLDEN ORNAMENTAL BALCONY (center, rows 3-4 area) ----
-  const balcY=winStartY+3*(winGapY+winH)+winGapY;
-  const balcH=2*(winH+winGapY);
-  const balcX=bx+3*(winGapX+winW);
-  const balcW=3*(winW+winGapX)-winGapX+winGapX*2;
+    // ---- VISA STAMP ----
+    function showVisaStamp(p) { const s = document.createElement('div'); s.className = 'visa-stamp'; s.textContent = 'DENIED'; s.style.opacity = '0'; p.appendChild(s); setTimeout(() => { s.style.opacity = '1'; p.style.animation = 'shake .3s'; if (audioCtx) { playNote(110, .5, audioCtx.currentTime, 'sawtooth', .1); playNote(80, .8, audioCtx.currentTime + .1, 'sawtooth', .08); } setTimeout(() => p.style.animation = '', 300); }, 100); setTimeout(() => { s.style.transition = 'opacity 2s'; s.style.opacity = '0'; setTimeout(() => s.remove(), 2000); }, 3000); }
 
-  // Balcony background (golden ornamental)
-  const bg=ctx.createLinearGradient(balcX,balcY,balcX,balcY+balcH);
-  bg.addColorStop(0,'#d4a840'); bg.addColorStop(.3,'#e0b850'); bg.addColorStop(.7,'#d4a840'); bg.addColorStop(1,'#c09030');
-  ctx.fillStyle=bg; ctx.fillRect(balcX-2,balcY-1,balcW+4,balcH+2);
+    // ---- KM COUNTER ----
+    function showKmCounter(p) { return new Promise(r => { const c = document.createElement('div'); c.className = 'km-counter'; c.textContent = '0 km'; p.appendChild(c); c.style.opacity = '1'; let k = 0; const iv = setInterval(() => { k += Math.ceil((500 - k) * .05) + 1; if (k >= 500) { k = 500; clearInterval(iv); c.textContent = '500 km'; setTimeout(() => { c.style.transition = 'opacity 1.5s'; c.style.opacity = '0'; setTimeout(() => { c.remove(); r(); }, 1500); }, 1500); } c.textContent = k + ' km'; }, 50); }); }
 
-  // Golden railing pattern
-  ctx.fillStyle='#c09030'; ctx.fillRect(balcX-3,balcY-2,balcW+6,1);
-  ctx.fillStyle='#e8c860'; ctx.fillRect(balcX-3,balcY+balcH+1,balcW+6,1);
-  // Ornamental details on balcony
-  for(let i=0;i<6;i++){
-    const ox=balcX+2+i*(balcW/6);
-    ctx.fillStyle='#c09838'; ctx.fillRect(ox,balcY,1,balcH);
-    // Diamond ornament
-    ctx.fillStyle='#e8c860'; ctx.fillRect(ox,balcY+balcH*.4,2,2);
-  }
-  // Balcony center arch detail
-  ctx.fillStyle='#e8c860';
-  ctx.fillRect(balcX+balcW*.3,balcY+2,balcW*.4,1);
-  ctx.fillRect(balcX+balcW*.35,balcY+1,balcW*.3,1);
+    // ---- HEARTS ----
+    function spawnHearts(n = 20) { for (let i = 0; i < n; i++) { setTimeout(() => { const h = document.createElement('div'); h.className = 'floating-heart'; h.textContent = '♥'; h.style.left = Math.random() * 100 + 'vw'; h.style.bottom = '-20px'; h.style.fontSize = (12 + Math.random() * 24) + 'px'; h.style.color = `hsl(${340 + Math.random() * 30},80%,${50 + Math.random() * 20}%)`; game.appendChild(h); const d = 3000 + Math.random() * 4000; h.animate([{ transform: 'translateY(0) rotate(0deg)', opacity: .8 }, { transform: `translateY(-${window.innerHeight + 50}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }], { duration: d, easing: 'ease-out' }); setTimeout(() => h.remove(), d); }, i * 200); } }
 
-  // ---- GROUND FLOOR (entrance area) ----
-  const gfY=storeY+storeH*.75;
-  const gfH=storeH*.25;
-  // Darker stone ground floor
-  ctx.fillStyle='#9a8878'; ctx.fillRect(bx,gfY,bw,gfH);
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  // Main entrance (center, tall glass doors)
-  const dx=w*.38, dw=w*.24, dy=gfY+2, dh=gfH-2;
-  ctx.fillStyle='#5a4a38'; ctx.fillRect(dx-1,dy-1,dw+2,dh+2);
-  const dg=ctx.createLinearGradient(dx,dy,dx,dy+dh);
-  dg.addColorStop(0,'#e8d8b8'); dg.addColorStop(1,'#d0c0a0');
-  ctx.fillStyle=dg; ctx.fillRect(dx,dy,dw,dh);
-  // Door divisions (3 glass panels)
-  ctx.fillStyle='#8a7a68';
-  ctx.fillRect(dx+dw*.33,dy,0.5,dh);
-  ctx.fillRect(dx+dw*.66,dy,0.5,dh);
-  // Horizontal bar
-  ctx.fillRect(dx,dy+dh*.5,dw,0.5);
+    // ==========================================
+    // SCENE DEFINITIONS
+    // ==========================================
 
-  // "STATE DEPARTMENT STORE" sign above entrance
-  ctx.fillStyle='#d4a840';
-  ctx.font='3px monospace';
-  ctx.textAlign='center';
-  ctx.fillText('STATE DEPARTMENT STORE',w*.5,gfY);
-
-  // Side shop windows (ground floor)
-  for(let side=0;side<2;side++){
-    const sx=side===0?bx+3:dx+dw+3, sw=(dx-bx-6);
-    const sy=gfY+3;
-    if(side===1) { // right side
-      const sx2=dx+dw+3;
-      ctx.fillStyle='#6a5a48'; ctx.fillRect(sx2-0.5,sy-0.5,sw+1,dh*.7+1);
-      ctx.fillStyle='#e8d8a8'; ctx.fillRect(sx2,sy,sw,dh*.7);
-    } else {
-      ctx.fillStyle='#6a5a48'; ctx.fillRect(sx-0.5,sy-0.5,sw+1,dh*.7+1);
-      ctx.fillStyle='#e8d8a8'; ctx.fillRect(sx,sy,sw,dh*.7);
-    }
-  }
-
-  // ---- GROUND / PLAZA ----
-  const gy=storeY+storeH;
-  // Stone tile plaza
-  const plz=ctx.createLinearGradient(0,gy,0,h);
-  plz.addColorStop(0,'#4a4440'); plz.addColorStop(.3,'#3a3530'); plz.addColorStop(1,'#2a2520');
-  ctx.fillStyle=plz; ctx.fillRect(0,gy,w,h-gy);
-
-  // Tile grid pattern
-  for(let ty=gy;ty<h;ty+=4){
-    for(let tx=0;tx<w;tx+=5){
-      const off=Math.floor((ty-gy)/4)%2===0?2:0;
-      ctx.fillStyle='rgba(70,65,58,0.12)';
-      ctx.fillRect(tx+off,ty,4,3);
-      ctx.fillStyle='rgba(30,28,25,0.08)';
-      ctx.fillRect(tx+off,ty+3,4,0.5);
-      ctx.fillRect(tx+off+4,ty,0.5,3);
-    }
-  }
-
-  // ---- FOUNTAIN IN PLAZA (centered, large) ----
-  const fx=w*.5, fy=gy+(h-gy)*.3;
-
-  // Fountain outer rim (large stone circle)
-  ctx.fillStyle='#5a5550';
-  ctx.beginPath(); ctx.ellipse(fx,fy+5,32,10,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#6a6560';
-  ctx.beginPath(); ctx.ellipse(fx,fy+4,30,9,0,0,Math.PI*2); ctx.fill();
-  // Stone rim detail
-  ctx.fillStyle='#7a7570';
-  ctx.beginPath(); ctx.ellipse(fx,fy+3,28,8,0,0,Math.PI*2); ctx.fill();
-  // Water in basin
-  const wb=ctx.createRadialGradient(fx,fy+2,2,fx,fy+2,25);
-  wb.addColorStop(0,'rgba(100,180,240,0.45)'); wb.addColorStop(.5,'rgba(70,140,200,0.3)'); wb.addColorStop(1,'rgba(40,80,140,0.15)');
-  ctx.fillStyle=wb;
-  ctx.beginPath(); ctx.ellipse(fx,fy+2,25,7,0,0,Math.PI*2); ctx.fill();
-
-  // Central pillar (taller, ornamental)
-  ctx.fillStyle='#6a6560'; ctx.fillRect(fx-2,fy-20,4,22);
-  ctx.fillStyle='#7a7570'; ctx.fillRect(fx-3,fy-1,6,2); // base ring
-  ctx.fillStyle='#7a7570'; ctx.fillRect(fx-3,fy-10,6,2); // mid ring
-  ctx.fillStyle='#8a8580'; ctx.fillRect(fx-2,fy-15,4,1); // upper ring
-  ctx.fillStyle='#9a9590'; ctx.fillRect(fx-1,fy-22,2,2); // top cap
-
-  // Second tier basin
-  ctx.fillStyle='#7a7570';
-  ctx.beginPath(); ctx.ellipse(fx,fy-10,8,3,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(100,170,230,0.3)';
-  ctx.beginPath(); ctx.ellipse(fx,fy-10,6,2,0,0,Math.PI*2); ctx.fill();
-
-  // Water jets (animated, more dramatic)
-  for(let i=0;i<18;i++){
-    const angle=t*.003+i*0.35;
-    const spread=12+Math.sin(t*.002)*3;
-    const px=fx+Math.sin(angle)*spread;
-    const py=fy-22+Math.abs(Math.sin(angle*1.3))*(-8)+((angle*4)%14);
-    const alpha=.35+Math.sin(t*.005+i)*.15;
-    ctx.fillStyle=`rgba(150,200,255,${alpha})`;
-    ctx.fillRect(px|0,py|0,1,1);
-  }
-  // Upper tier water falling to lower basin
-  for(let i=0;i<8;i++){
-    const angle2=t*.004+i*0.8;
-    const px2=fx+Math.sin(angle2)*6;
-    const py2=fy-8+((t*.04+i*7)%5);
-    ctx.fillStyle='rgba(150,210,255,0.3)';
-    ctx.fillRect(px2|0,py2|0,1,1);
-  }
-  // Falling droplets from rim
-  for(let i=0;i<16;i++){
-    const ddx=fx+Math.sin(i*1.7)*18;
-    const ddy=fy-4+((t*.05+i*9)%10);
-    ctx.fillStyle='rgba(150,210,255,0.2)';
-    ctx.fillRect(ddx|0,ddy|0,1,1);
-  }
-  // Fountain glow
-  const fgl=ctx.createRadialGradient(fx,fy-8,2,fx,fy-8,40);
-  fgl.addColorStop(0,'rgba(100,170,240,0.08)'); fgl.addColorStop(1,'transparent');
-  ctx.fillStyle=fgl; ctx.beginPath(); ctx.arc(fx,fy-8,40,0,Math.PI*2); ctx.fill();
-
-  // ---- BEATLES MONUMENT (right side of plaza) ----
-  const bsx=w*.8, bsy=gy+(h-gy)*.45;
-  // Stone bench/pedestal
-  ctx.fillStyle='#5a5550'; ctx.fillRect(bsx-12,bsy,24,3);
-  ctx.fillStyle='#6a6560'; ctx.fillRect(bsx-10,bsy-1,20,1);
-  // Seated figure silhouettes (4 Beatles)
-  ctx.fillStyle='#2a2a30';
-  for(let i=0;i<4;i++){
-    const bfx=bsx-8+i*5.5;
-    // Body
-    ctx.fillRect(bfx,bsy-6,3,6);
-    // Head
-    ctx.fillRect(bfx,bsy-8,3,2);
-    // Legs
-    ctx.fillRect(bfx,bsy,2,2);
-    ctx.fillRect(bfx+1,bsy,2,2);
-  }
-  // One figure has "guitar"
-  ctx.fillStyle='#3a3a40';
-  ctx.fillRect(bsx-5,bsy-4,1,5); // guitar neck
-  ctx.fillRect(bsx-6,bsy-1,3,3); // guitar body
-
-  // ---- LAMP POSTS ----
-  for(let side=-1;side<=1;side+=2){
-    const lx=fx+side*55;
-    ctx.fillStyle='#3a3530'; ctx.fillRect(lx,gy-10,1,11);
-    ctx.fillStyle='#4a4540'; ctx.fillRect(lx-1,gy-11,3,1);
-    // Globe lamp
-    ctx.fillStyle='rgba(255,220,150,0.5)'; ctx.fillRect(lx-1,gy-12,3,2);
-    const llg=ctx.createRadialGradient(lx,gy-11,1,lx,gy-11,14);
-    llg.addColorStop(0,'rgba(255,220,150,0.08)'); llg.addColorStop(1,'transparent');
-    ctx.fillStyle=llg; ctx.fillRect(lx-14,gy-24,28,24);
-  }
-
-  // ---- STREET / ROAD at bottom ----
-  const ry=h-8;
-  ctx.fillStyle='#1a1a20'; ctx.fillRect(0,ry,w,8);
-  // Road markings
-  ctx.fillStyle='rgba(255,255,255,0.1)';
-  for(let rx=0;rx<w;rx+=12){ ctx.fillRect(rx,ry+4,6,0.5); }
-  // Car silhouettes (passing)
-  const carOff=(t*.02)%w;
-  for(let i=0;i<3;i++){
-    const cx2=(carOff+i*130)%w;
-    const cc=['#3a2828','#28283a','#2a3828'][i];
-    ctx.fillStyle=cc; ctx.fillRect(cx2,ry+1,14,4);
-    ctx.fillStyle='#1a1a20'; ctx.fillRect(cx2+1,ry+1,3,2); // windshield
-    ctx.fillStyle='#1a1a20'; ctx.fillRect(cx2+10,ry+1,3,2);
-    // Headlight
-    ctx.fillStyle='rgba(255,220,100,0.3)'; ctx.fillRect(cx2+14,ry+2,1,1);
-    // Taillight
-    ctx.fillStyle='rgba(255,50,50,0.3)'; ctx.fillRect(cx2-1,ry+2,1,1);
-  }
-
-  // Trees on plaza edges
-  for(let i=0;i<3;i++){
-    const tx2=w*.02+i*w*.04;
-    ctx.fillStyle='#2a1a10'; ctx.fillRect(tx2+2,gy+2,1,6);
-    ctx.fillStyle='#1a3a12'; ctx.fillRect(tx2,gy-1,5,3);
-    ctx.fillStyle='#2a4a1a'; ctx.fillRect(tx2+1,gy-2,3,2);
-  }
-  for(let i=0;i<3;i++){
-    const tx2=w*.86+i*w*.04;
-    ctx.fillStyle='#2a1a10'; ctx.fillRect(tx2+2,gy+2,1,6);
-    ctx.fillStyle='#1a3a12'; ctx.fillRect(tx2,gy-1,5,3);
-    ctx.fillStyle='#2a4a1a'; ctx.fillRect(tx2+1,gy-2,3,2);
-  }
-}
-
-function drawPub(t) {
-  const w=GAME_W, h=GAME_H;
-
-  const bg=ctx.createRadialGradient(w*.5,h*.3,10,w*.5,h*.5,w*.6);
-  bg.addColorStop(0,'#2a1a0e'); bg.addColorStop(.5,'#1a1008'); bg.addColorStop(1,'#0e0a05');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
-
-  // Ceiling
-  const cg=ctx.createLinearGradient(0,0,0,h*.12);
-  cg.addColorStop(0,'#1a1008'); cg.addColorStop(1,'#2a1a0e');
-  ctx.fillStyle=cg; ctx.fillRect(0,0,w,h*.12);
-  for(let x=0;x<w;x+=w/8){ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(x,0,1,h*.12);}
-
-  // Back wall
-  const wg=ctx.createLinearGradient(0,h*.12,0,h*.55);
-  wg.addColorStop(0,'#1e1208'); wg.addColorStop(1,'#181006');
-  ctx.fillStyle=wg; ctx.fillRect(0,h*.12,w,h*.43);
-
-  // Banknotes on wall
-  for(let i=0;i<20;i++){
-    const bx=((i*97)%w), by=h*.14+((i*67)%(h*.38));
-    ctx.fillStyle=`rgba(${160+((i*37)%80)},${150+((i*53)%80)},${100+((i*29)%60)},0.12)`;
-    ctx.fillRect(bx,by,3,1);
-  }
-
-  // Ceiling lights
-  for(let i=0;i<3;i++){
-    const lx=w*(.25+i*.25);
-    const lg=ctx.createRadialGradient(lx,h*.12,1,lx,h*.3,36);
-    lg.addColorStop(0,'rgba(255,180,80,0.12)'); lg.addColorStop(.3,'rgba(255,150,50,0.04)'); lg.addColorStop(1,'transparent');
-    ctx.fillStyle=lg; ctx.fillRect(0,0,w,h*.6);
-    ctx.fillStyle='#4a3520'; ctx.fillRect(lx-1,h*.1,3,2);
-    ctx.fillStyle='rgba(255,200,100,0.6)';
-    ctx.fillRect(lx,h*.12,1,1);
-  }
-
-  // Bar counter
-  const bar=ctx.createLinearGradient(0,h*.62,0,h*.67);
-  bar.addColorStop(0,'#4a3018'); bar.addColorStop(.5,'#3a2410'); bar.addColorStop(1,'#2a1808');
-  ctx.fillStyle=bar; ctx.fillRect(0,h*.62,w,h*.05);
-  ctx.fillStyle='rgba(255,200,120,0.08)'; ctx.fillRect(0,h*.62,w,1);
-  ctx.fillStyle='#120e08'; ctx.fillRect(0,h*.67,w,h*.33);
-
-  // Beer glasses
-  for(let i=0;i<2;i++){
-    const gx=w/2-8+i*12, gy=h*.55;
-    ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx,gy,4,5);
-    const beer=ctx.createLinearGradient(gx,gy+1,gx,gy+4);
-    beer.addColorStop(0,'#c49030'); beer.addColorStop(1,'#a07020');
-    ctx.fillStyle=beer; ctx.fillRect(gx+1,gy+1,2,3);
-    ctx.fillStyle='#f0e8d0'; ctx.fillRect(gx,gy,4,1);
-    ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx+3,gy+1,1,2);
-  }
-
-  // Bottles behind bar
-  for(let i=0;i<6;i++){
-    const bx=w*.1+i*w*.14;
-    ctx.fillStyle=['#2a4a2a','#4a2a2a','#2a2a4a','#4a4a2a','#3a3a3a','#4a3a2a'][i];
-    ctx.fillRect(bx,h*.48,2,5);
-    ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(bx,h*.48,1,2);
-  }
-
-  // Wall decorations (framed pictures)
-  ctx.fillStyle='#2a2018'; ctx.fillRect(w*.2,h*.2,6,5);
-  ctx.fillStyle='#3a3028'; ctx.fillRect(w*.21,h*.21,4,3);
-  ctx.fillStyle='#2a2018'; ctx.fillRect(w*.7,h*.22,5,4);
-  ctx.fillStyle='#3a3028'; ctx.fillRect(w*.71,h*.23,3,2);
-
-  ctx.fillStyle='#0e0a06'; ctx.fillRect(0,h*.85,w,h*.15);
-}
-
-function drawSteppe(t) {
-  const w=GAME_W, h=GAME_H;
-
-  const sky=ctx.createLinearGradient(0,0,0,h*.62);
-  sky.addColorStop(0,'#050510'); sky.addColorStop(.3,'#0a0a20'); sky.addColorStop(.6,'#10102e'); sky.addColorStop(1,'#1a1840');
-  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h*.65);
-  drawStars(t);
-
-  // Milky way
-  ctx.globalAlpha=0.03;
-  ctx.fillStyle='#8888cc';
-  ctx.beginPath(); ctx.ellipse(w*.6,h*.15,w*.4,h*.08,-.3,0,Math.PI*2); ctx.fill();
-  ctx.globalAlpha=1;
-
-  // Moon
-  const mx=w*.82,my=h*.1;
-  const mg=ctx.createRadialGradient(mx,my,3,mx,my,16);
-  mg.addColorStop(0,'rgba(240,230,210,0.2)'); mg.addColorStop(1,'transparent');
-  ctx.fillStyle=mg; ctx.beginPath(); ctx.arc(mx,my,16,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#e8dcc8'; ctx.beginPath(); ctx.arc(mx,my,4,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#d0c4b0'; ctx.fillRect(mx-1,my,1,1);
-  ctx.fillStyle='#050510'; ctx.beginPath(); ctx.arc(mx+2,my-1,3,0,Math.PI*2); ctx.fill();
-
-  // Mountains
-  const gy=h*.62;
-  ctx.fillStyle='#12122a';
-  ctx.beginPath(); ctx.moveTo(0,gy);
-  for(let x=0;x<=w;x+=2) ctx.lineTo(x,gy-4-Math.sin(x*.015)*6-Math.sin(x*.035+2)*3);
-  ctx.lineTo(w,gy); ctx.fill();
-
-  // Distant ger (Mongolian yurt) on the steppe
-  const gx=w*.18, gy2=gy-1;
-  ctx.fillStyle='#1a1a2a'; ctx.fillRect(gx-3,gy2-2,6,2); // walls
-  ctx.fillStyle='#14142a'; // roof
-  ctx.beginPath(); ctx.moveTo(gx-4,gy2-2); ctx.lineTo(gx,gy2-5); ctx.lineTo(gx+4,gy2-2); ctx.fill();
-  ctx.fillStyle='rgba(255,180,80,0.08)'; ctx.fillRect(gx,gy2-1,1,1); // tiny door light
-
-  // Another distant ger
-  const gx2=w*.75;
-  ctx.fillStyle='#16162a'; ctx.fillRect(gx2-2,gy2-1,4,1);
-  ctx.fillStyle='#12122a';
-  ctx.beginPath(); ctx.moveTo(gx2-3,gy2-1); ctx.lineTo(gx2,gy2-3); ctx.lineTo(gx2+3,gy2-1); ctx.fill();
-
-  // Ground
-  const gg=ctx.createLinearGradient(0,gy,0,h);
-  gg.addColorStop(0,'#2a3a1a'); gg.addColorStop(.2,'#223014'); gg.addColorStop(.5,'#1a2610'); gg.addColorStop(1,'#0f1a08');
-  ctx.fillStyle=gg; ctx.fillRect(0,gy,w,h-gy);
-
-  // Rolling hills
-  for(let layer=0;layer<3;layer++){
-    const off=layer*1.5, amp=3+layer*2, col=`rgba(${30-layer*5},${50-layer*8},${20-layer*5},0.5)`;
-    ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,gy+3+layer*2);
-    for(let x=0;x<=w;x+=2) ctx.lineTo(x,gy+3+layer*2+Math.sin(x*.025+off)*amp+Math.sin(x*.01+off*2)*amp*.5);
-    ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.fill();
-  }
-
-  // Road
-  const rg=ctx.createLinearGradient(0,gy+6,0,h);
-  rg.addColorStop(0,'#1a1a20'); rg.addColorStop(1,'#222228');
-  ctx.fillStyle=rg;
-  ctx.beginPath(); ctx.moveTo(w*.43,gy+6); ctx.lineTo(w*.57,gy+6);
-  ctx.lineTo(w*.75,h); ctx.lineTo(w*.25,h); ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(w*.43,gy+6); ctx.lineTo(w*.25,h); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(w*.57,gy+6); ctx.lineTo(w*.75,h); ctx.stroke();
-  ctx.fillStyle='#f4a261';
-  for(let i=0;i<10;i++){
-    const r=(i+(t*.0003%1))/10;
-    const dy=gy+7+r*(h-gy-7);
-    const dw=.5+r*3;
-    const dh=.5+r*1;
-    ctx.globalAlpha=.2+r*.6;
-    ctx.fillRect(w/2-dw/2,dy,dw,dh);
-  }
-  ctx.globalAlpha=1;
-
-  const haze=ctx.createLinearGradient(0,gy-2,0,gy+6);
-  haze.addColorStop(0,'transparent'); haze.addColorStop(1,'rgba(15,15,30,0.3)');
-  ctx.fillStyle=haze; ctx.fillRect(0,gy-2,w,8);
-}
-
-function drawGerInterior(t) {
-  const w=GAME_W, h=GAME_H;
-
-  // Warm interior background
-  const bg=ctx.createRadialGradient(w*.5,h*.25,10,w*.5,h*.5,w*.6);
-  bg.addColorStop(0,'#3a2818'); bg.addColorStop(.4,'#2a1e12'); bg.addColorStop(1,'#1a140e');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
-
-  // Circular ger walls (lattice pattern - khana)
-  const wallY=h*.18, wallH=h*.5;
-  const wallGrad=ctx.createLinearGradient(0,wallY,0,wallY+wallH);
-  wallGrad.addColorStop(0,'#e8d8c0'); wallGrad.addColorStop(.5,'#d8c8a8'); wallGrad.addColorStop(1,'#c8b898');
-  // Curved walls (left and right)
-  for(let side=0;side<2;side++){
-    const sx=side===0?0:w*.7, sw=w*.3;
-    ctx.fillStyle=wallGrad;
-    ctx.beginPath();
-    ctx.moveTo(sx,wallY+wallH);
-    for(let y=wallY+wallH;y>=wallY;y-=1){
-      const curve=side===0?(sw-Math.pow((y-wallY)/wallH,0.5)*sw*0.6):(w-sw+Math.pow((y-wallY)/wallH,0.5)*sw*0.6);
-      ctx.lineTo(curve,y);
-    }
-    ctx.lineTo(side===0?sw:w-sw,wallY+wallH);
-    ctx.fill();
-  }
-
-  // Back wall (center, felt covering)
-  ctx.fillStyle='#d0c0a0'; ctx.fillRect(w*.15,wallY,w*.7,wallH);
-
-  // Lattice pattern on walls (khana - crisscross wooden lattice)
-  ctx.strokeStyle='rgba(120,90,50,0.12)'; ctx.lineWidth=0.5;
-  for(let i=0;i<20;i++){
-    const x1=w*.15+i*(w*.7/20);
-    ctx.beginPath(); ctx.moveTo(x1,wallY); ctx.lineTo(x1+w*.035,wallY+wallH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x1+w*.035,wallY); ctx.lineTo(x1,wallY+wallH); ctx.stroke();
-  }
-
-  // Toono (circular skylight at top center)
-  const tx=w*.5, ty=h*.06;
-  ctx.fillStyle='#1a2a3a';
-  ctx.beginPath(); ctx.ellipse(tx,ty,24,8,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#0a1a2a';
-  ctx.beginPath(); ctx.ellipse(tx,ty,20,6,0,0,Math.PI*2); ctx.fill();
-  // Sky through toono
-  ctx.fillStyle='#0a0a2a';
-  ctx.beginPath(); ctx.ellipse(tx,ty,16,4,0,0,Math.PI*2); ctx.fill();
-  // Stars through toono
-  for(let i=0;i<4;i++){
-    const sx=tx-10+i*7, sy=ty-2+Math.sin(i*2)*2;
-    ctx.fillStyle=`rgba(240,230,210,${.3+Math.sin(t*.005+i)*.2})`;
-    ctx.fillRect(sx,sy,1,1);
-  }
-  // Uni (roof poles) radiating from toono
-  ctx.strokeStyle='rgba(100,70,40,0.2)'; ctx.lineWidth=0.5;
-  for(let i=0;i<12;i++){
-    const angle=i*(Math.PI/12)+Math.PI*.08;
-    ctx.beginPath();
-    ctx.moveTo(tx+Math.cos(angle)*18,ty+Math.sin(angle)*5);
-    ctx.lineTo(tx+Math.cos(angle)*w*.45,wallY);
-    ctx.stroke();
-  }
-
-  // Toono rim
-  ctx.strokeStyle='#8a6a40'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.ellipse(tx,ty,22,7,0,0,Math.PI*2); ctx.stroke();
-
-  // Colorful Mongolian felt bands on walls
-  const bandY=wallY+wallH*.35;
-  ctx.fillStyle='#c04040'; ctx.fillRect(w*.15,bandY,w*.7,2);
-  ctx.fillStyle='#d4a840'; ctx.fillRect(w*.15,bandY+2,w*.7,1);
-  ctx.fillStyle='#3060a0'; ctx.fillRect(w*.15,bandY+3,w*.7,2);
-
-  // ---- GER DOOR (centered on back wall) ----
-  const doorX=w*.5-8, doorY=wallY+wallH*.45, doorW=16, doorH=wallH*.55;
-  // Door frame (orange/painted wood)
-  ctx.fillStyle='#c06020'; ctx.fillRect(doorX-2,doorY-1,doorW+4,doorH+1);
-  ctx.fillStyle='#d07030'; ctx.fillRect(doorX-1,doorY,doorW+2,doorH);
-  // Door panels (painted, traditional patterns)
-  ctx.fillStyle='#d48030'; ctx.fillRect(doorX,doorY,doorW,doorH);
-  // Door center divide
-  ctx.fillStyle='#c06020'; ctx.fillRect(doorX+doorW/2-0.5,doorY,1,doorH);
-  // Door decorative panels
-  ctx.fillStyle='#e09040'; ctx.fillRect(doorX+2,doorY+3,doorW/2-3,doorH*.35);
-  ctx.fillStyle='#e09040'; ctx.fillRect(doorX+doorW/2+1,doorY+3,doorW/2-3,doorH*.35);
-  // Gold trim on door
-  ctx.fillStyle='#d4a840'; ctx.fillRect(doorX,doorY,doorW,1);
-  ctx.fillStyle='#d4a840'; ctx.fillRect(doorX+1,doorY+doorH*.4,doorW-2,1);
-
-  // ---- FLOOR (wooden/felt) ----
-  const fy=wallY+wallH;
-  const flr=ctx.createLinearGradient(0,fy,0,h);
-  flr.addColorStop(0,'#6a4a2a'); flr.addColorStop(.3,'#5a3a22'); flr.addColorStop(1,'#4a2a18');
-  ctx.fillStyle=flr; ctx.fillRect(0,fy,w,h-fy);
-
-  // Carpet in center (ornate Mongolian carpet)
-  const cx=w*.25, cy=fy+3, cw=w*.5, ch2=(h-fy)*.7;
-  ctx.fillStyle='#8a2030'; ctx.fillRect(cx,cy,cw,ch2);
-  ctx.fillStyle='#a03040'; ctx.fillRect(cx+2,cy+1,cw-4,ch2-2);
-  // Carpet border pattern
-  ctx.fillStyle='#d4a840'; ctx.fillRect(cx+1,cy,cw-2,1);
-  ctx.fillStyle='#d4a840'; ctx.fillRect(cx+1,cy+ch2-1,cw-2,1);
-  ctx.fillStyle='#d4a840'; ctx.fillRect(cx,cy+1,1,ch2-2);
-  ctx.fillStyle='#d4a840'; ctx.fillRect(cx+cw-1,cy+1,1,ch2-2);
-  // Inner diamond pattern
-  for(let i=0;i<4;i++){
-    const dx2=cx+cw*.2+i*cw*.2, dy2=cy+ch2*.3;
-    ctx.fillStyle='#d4a840';
-    ctx.fillRect(dx2,dy2,2,2);
-    ctx.fillRect(dx2-1,dy2+1,1,1);
-    ctx.fillRect(dx2+2,dy2+1,1,1);
-  }
-
-  // ---- FURNITURE ----
-  // Stove (center-left, traditional Mongolian stove with chimney)
-  const stx=w*.18, sty=fy-2;
-  ctx.fillStyle='#2a2a30'; ctx.fillRect(stx-4,sty,8,4);
-  ctx.fillStyle='#3a3a40'; ctx.fillRect(stx-3,sty-2,6,2);
-  // Chimney pipe going up to toono
-  ctx.fillStyle='#2a2a30'; ctx.fillRect(stx,sty-2,1,-(sty-ty-8));
-  // Fire glow
-  const fglow=ctx.createRadialGradient(stx,sty,1,stx,sty,15);
-  fglow.addColorStop(0,'rgba(255,150,50,0.08)'); fglow.addColorStop(1,'transparent');
-  ctx.fillStyle=fglow; ctx.fillRect(stx-15,sty-15,30,20);
-  // Fire flicker
-  ctx.fillStyle=`rgba(255,${140+Math.sin(t*.01)*40},50,0.3)`;
-  ctx.fillRect(stx-1,sty-1,2,1);
-
-  // Low table with food (right side)
-  const tbx=w*.62, tby=fy+4;
-  ctx.fillStyle='#5a3a1a'; ctx.fillRect(tbx-8,tby,16,2);
-  ctx.fillStyle='#6a4a28'; ctx.fillRect(tbx-7,tby+2,14,1);
-  // Bowls of food on table
-  ctx.fillStyle='#d0d0c0'; ctx.fillRect(tbx-5,tby-1,3,1); // bowl 1
-  ctx.fillStyle='#e0c080'; ctx.fillRect(tbx-4,tby-2,1,1); // food
-  ctx.fillStyle='#d0d0c0'; ctx.fillRect(tbx+2,tby-1,3,1); // bowl 2
-  ctx.fillStyle='#c08040'; ctx.fillRect(tbx+3,tby-2,1,1); // food
-
-  // Mongolian cabinet (avdar) on back wall
-  const abx=w*.75, aby=wallY+wallH*.5;
-  ctx.fillStyle='#c04030'; ctx.fillRect(abx,aby,12,wallH*.4);
-  ctx.fillStyle='#d4a840'; ctx.fillRect(abx+1,aby+1,10,1); // gold trim
-  ctx.fillStyle='#d4a840'; ctx.fillRect(abx+1,aby+wallH*.4-2,10,1);
-  ctx.fillStyle='#a03020'; ctx.fillRect(abx+2,aby+3,8,wallH*.15); // door panel
-  ctx.fillStyle='#d4a840'; ctx.fillRect(abx+5,aby+5,2,1); // handle
-
-  // Beds/cushions on sides
-  for(let side=0;side<2;side++){
-    const bx2=side===0?w*.05:w*.82, bw2=w*.12;
-    ctx.fillStyle='#8a3040'; ctx.fillRect(bx2,fy+2,bw2,5);
-    ctx.fillStyle='#a04050'; ctx.fillRect(bx2+1,fy+1,bw2-2,2);
-    // Pillow
-    ctx.fillStyle='#d0c0a0'; ctx.fillRect(bx2+2,fy,4,2);
-  }
-
-  // Warm ambient light from stove
-  const ambient=ctx.createRadialGradient(w*.35,h*.5,20,w*.35,h*.5,w*.5);
-  ambient.addColorStop(0,'rgba(255,180,80,0.04)'); ambient.addColorStop(1,'transparent');
-  ctx.fillStyle=ambient; ctx.fillRect(0,0,w,h);
-}
-
-function drawRainScene(t) {
-  const w=GAME_W, h=GAME_H;
-  const sky=ctx.createLinearGradient(0,0,0,h);
-  sky.addColorStop(0,'#060610'); sky.addColorStop(.5,'#080814'); sky.addColorStop(1,'#0a0a12');
-  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
-
-  // City silhouettes
-  for(let i=0;i<15;i++){
-    const bx=i*(w/15),bw=w/15+1,bh=h*(.12+Math.sin(i*1.7+.5)*.08);
-    const bg=ctx.createLinearGradient(bx,h*.6-bh,bx,h*.6);
-    bg.addColorStop(0,'#0e0e18'); bg.addColorStop(1,'#0a0a12');
-    ctx.fillStyle=bg; ctx.fillRect(bx,h*.6-bh,bw,bh+h*.4);
-    for(let wy=h*.6-bh+2;wy<h*.58;wy+=3){
-      for(let wx=bx+1;wx<bx+bw-1;wx+=2){
-        if(Math.sin(i*4+wx*.5+wy*.5)>.5){
-          ctx.fillStyle='rgba(255,200,100,0.06)'; ctx.fillRect(wx,wy,1,1);
-        }
-      }
-    }
-  }
-
-  // Wet ground
-  const gnd=ctx.createLinearGradient(0,h*.72,0,h);
-  gnd.addColorStop(0,'#0a0a14'); gnd.addColorStop(1,'#060610');
-  ctx.fillStyle=gnd; ctx.fillRect(0,h*.72,w,h*.28);
-
-  // Puddles
-  for(let i=0;i<5;i++){
-    const px=w*(.1+i*.2+Math.sin(i*2)*.05), pw=8+i*2;
-    const pg=ctx.createRadialGradient(px,h*.82,1,px,h*.82,pw);
-    pg.addColorStop(0,'rgba(80,100,150,0.06)'); pg.addColorStop(1,'transparent');
-    ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(px,h*.82,pw,2,0,0,Math.PI*2); ctx.fill();
-  }
-
-  // Rain
-  for(let i=0;i<30;i++){
-    const rx=(i*47+t*.3)%w;
-    const ry=((t*.6+i*73)%h);
-    const alpha=.05+Math.random()*.1;
-    ctx.fillStyle=`rgba(150,180,220,${alpha})`;
-    ctx.fillRect(rx,ry,1,2);
-  }
-
-  const fog=ctx.createLinearGradient(0,h*.5,0,h*.8);
-  fog.addColorStop(0,'transparent'); fog.addColorStop(.5,'rgba(10,10,20,0.2)'); fog.addColorStop(1,'transparent');
-  ctx.fillStyle=fog; ctx.fillRect(0,h*.5,w,h*.3);
-}
-
-function drawDarkRoom(t) {
-  const w=GAME_W, h=GAME_H;
-  ctx.fillStyle='#040406'; ctx.fillRect(0,0,w,h);
-
-  // Window
-  const wx=w*.62, wy=h*.15, ww=24, wh=18;
-  ctx.fillStyle='#1a1a22'; ctx.fillRect(wx-1,wy-1,ww+2,wh+2);
-  const wsky=ctx.createLinearGradient(wx,wy,wx,wy+wh);
-  wsky.addColorStop(0,'#0a0a25'); wsky.addColorStop(1,'#10103a');
-  ctx.fillStyle=wsky; ctx.fillRect(wx,wy,ww,wh);
-  for(let i=0;i<5;i++){
-    ctx.fillStyle=`rgba(200,200,255,${.2+Math.sin(t*.01+i)*.15})`;
-    ctx.fillRect(wx+2+((i*5)%20),wy+1+((i*3)%14),1,1);
-  }
-  ctx.fillStyle='#1a1a22'; ctx.fillRect(wx+ww/2,wy,1,wh); ctx.fillRect(wx,wy+wh/2,ww,1);
-  ctx.fillStyle='rgba(20,15,25,0.6)'; ctx.fillRect(wx-2,wy-1,2,wh+2); ctx.fillRect(wx+ww,wy-1,2,wh+2);
-
-  // Moonlight beam
-  ctx.save();
-  const beam=ctx.createLinearGradient(wx+ww/2,wy+wh,wx+ww/2-6,h);
-  beam.addColorStop(0,'rgba(80,100,180,0.04)'); beam.addColorStop(1,'transparent');
-  ctx.fillStyle=beam;
-  ctx.beginPath(); ctx.moveTo(wx,wy+wh); ctx.lineTo(wx+ww,wy+wh); ctx.lineTo(wx+ww+12,h); ctx.lineTo(wx-12,h); ctx.fill();
-  ctx.restore();
-
-  // Rain on window
-  for(let i=0;i<8;i++){
-    const rx=wx+1+((i*3)%(ww-2));
-    const ry=wy+1+((t*.2+i*5)%(wh-2));
-    ctx.fillStyle='rgba(130,160,220,0.25)';
-    ctx.fillRect(rx,ry,1,1);
-    ctx.fillStyle='rgba(130,160,220,0.08)';
-    ctx.fillRect(rx,ry+1,1,2);
-  }
-
-  // Floor
-  const fl=ctx.createLinearGradient(0,h*.78,0,h);
-  fl.addColorStop(0,'#0a0808'); fl.addColorStop(1,'#060505');
-  ctx.fillStyle=fl; ctx.fillRect(0,h*.78,w,h*.22);
-
-  // Desk
-  ctx.fillStyle='#2a1e14'; ctx.fillRect(w*.28,h*.64,w*.44,1);
-  ctx.fillStyle='#18120e'; ctx.fillRect(w*.32,h*.645,1,h*.14); ctx.fillRect(w*.65,h*.645,1,h*.14);
-
-  // Laptop
-  const lx=w*.44, ly=h*.5;
-  const scr=ctx.createLinearGradient(lx,ly,lx,ly+h*.14);
-  scr.addColorStop(0,'#1a2a45'); scr.addColorStop(1,'#15203a');
-  ctx.fillStyle=scr; ctx.fillRect(lx,ly,16,h*.14);
-  ctx.strokeStyle='#2a2a3a'; ctx.lineWidth=1; ctx.strokeRect(lx,ly,16,h*.14);
-  const sg=ctx.createRadialGradient(lx+8,ly+h*.07,2,lx+8,ly+h*.07,30);
-  sg.addColorStop(0,'rgba(40,60,100,0.08)'); sg.addColorStop(1,'transparent');
-  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(lx+8,ly+h*.07,30,0,Math.PI*2); ctx.fill();
-  for(let i=0;i<4;i++){
-    const cw=4+Math.sin(i*2.3)*3;
-    ctx.fillStyle='rgba(100,200,150,0.15)'; ctx.fillRect(lx+2,ly+2+i*2,cw,1);
-  }
-  ctx.fillStyle='#1a1a25'; ctx.fillRect(lx-1,ly+h*.14,18,1);
-
-  // Coffee mug
-  ctx.fillStyle='#2a2020'; ctx.fillRect(lx+18,h*.6,3,3);
-  ctx.fillStyle='rgba(80,50,30,0.3)'; ctx.fillRect(lx+19,h*.6,1,1);
-  for(let i=0;i<2;i++){
-    const sx=lx+19+Math.sin(t*.003+i*2)*.5;
-    ctx.fillStyle=`rgba(150,150,180,${.03-i*.01})`;
-    ctx.fillRect(sx|0,h*.58-i*2,1,1);
-  }
-}
-
-function drawHeartsBg(t) {
-  drawStars(t);
-  const pg=ctx.createRadialGradient(GAME_W*.5,GAME_H*.4,10,GAME_W*.5,GAME_H*.4,GAME_W*.5);
-  pg.addColorStop(0,'rgba(229,49,112,0.04)'); pg.addColorStop(1,'transparent');
-  ctx.fillStyle=pg; ctx.fillRect(0,0,GAME_W,GAME_H);
-  for(let i=0;i<12;i++){
-    const x=(i*32+t*.015)%GAME_W;
-    const y=(GAME_H-((t*.025+i*18)%GAME_H));
-    const size=2+Math.sin(i*1.7)*1;
-    const alpha=.06+.08*Math.sin(t*.002+i);
-    drawHeart(x,y,size,`rgba(229,49,112,${alpha})`);
-  }
-}
-
-function drawHeart(x,y,size,color) {
-  ctx.fillStyle=color;
-  ctx.beginPath();
-  ctx.moveTo(x,y+size*.3);
-  ctx.bezierCurveTo(x,y,x-size,y,x-size,y+size*.3);
-  ctx.bezierCurveTo(x-size,y+size*.6,x,y+size*.8,x,y+size);
-  ctx.bezierCurveTo(x,y+size*.8,x+size,y+size*.6,x+size,y+size*.3);
-  ctx.bezierCurveTo(x+size,y,x,y,x,y+size*.3);
-  ctx.fill();
-}
-
-// ---- BACKGROUND RENDERER ----
-let bgMode='stars', bgTime=0;
-let charAnimations = []; // {type, x, y, scale, frame, flip, speed}
-
-function renderBg() {
-  bgTime += 16;
-  ctx.clearRect(0,0,GAME_W,GAME_H);
-  ctx.fillStyle='#0a0a12'; ctx.fillRect(0,0,GAME_W,GAME_H);
-
-  if (bgMode==='stars') drawStars(bgTime);
-  else if (bgMode==='city') drawNightCity(bgTime);
-  else if (bgMode==='fountain') drawFountain(bgTime);
-  else if (bgMode==='pub') drawPub(bgTime);
-  else if (bgMode==='steppe') drawSteppe(bgTime);
-  else if (bgMode==='ger') drawGerInterior(bgTime);
-  else if (bgMode==='rain') drawRainScene(bgTime);
-  else if (bgMode==='darkroom') drawDarkRoom(bgTime);
-  else if (bgMode==='hearts') { drawStars(bgTime); drawHeartsBg(bgTime); }
-  else if (bgMode==='walk') drawWalkScene();
-
-  // Draw animated characters
-  for (const ch of charAnimations) {
-    ch.frame = (ch.frame||0) + (ch.speed||0);
-    if (ch.type==='amaraa') drawAmaraa(ch.x, ch.y, ch.scale||2, Math.floor(ch.frame), ch.flip);
-    if (ch.type==='maagii') drawMaagii(ch.x, ch.y, ch.scale||2, Math.floor(ch.frame), ch.flip);
-    if (ch.type==='mom') drawMom(ch.x, ch.y, ch.scale||2, Math.floor(ch.frame), ch.flip);
-  }
-
-  requestAnimationFrame(renderBg);
-}
-renderBg();
-
-// ---- INTERACTIVE WALK ENGINE ----
-let walkActive = false, walkX = 0, walkTarget = 600, walkFrame = 0, walkDir = 0;
-let walkMaagiiX = 560;
-let walkReached = false, walkResolve = null;
-
-function drawWalkScene() {
-  const w=GAME_W, h=GAME_H;
-  const progress = Math.min(walkX / walkTarget, 1);
-
-  const sky=ctx.createLinearGradient(0,0,0,h*.7);
-  const darkR=6+progress*30, darkG=6+progress*15, darkB=16+progress*20;
-  const midR=10+progress*60, midG=10+progress*30, midB=20+progress*30;
-  sky.addColorStop(0,`rgb(${darkR|0},${darkG|0},${darkB|0})`);
-  sky.addColorStop(1,`rgb(${midR|0},${midG|0},${midB|0})`);
-  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
-
-  if(progress<.6){ctx.globalAlpha=1-progress*1.6;drawStars(bgTime);ctx.globalAlpha=1;}
-
-  if(progress>.3){
-    const ga=(progress-.3)*.2;
-    const dg=ctx.createRadialGradient(w*.85,h*.35,4,w*.85,h*.35,w*.4);
-    dg.addColorStop(0,`rgba(229,80,80,${ga})`);
-    dg.addColorStop(.5,`rgba(229,49,112,${ga*.3})`);
-    dg.addColorStop(1,'transparent');
-    ctx.fillStyle=dg; ctx.fillRect(0,0,w,h);
-  }
-
-  const groundY=h*.72;
-  const gg=ctx.createLinearGradient(0,groundY,0,h);
-  gg.addColorStop(0,`rgb(${15+progress*20|0},${20+progress*15|0},${10+progress*8|0})`);
-  gg.addColorStop(1,`rgb(${8+progress*12|0},${12+progress*10|0},${5+progress*5|0})`);
-  ctx.fillStyle=gg; ctx.fillRect(0,groundY,w,h-groundY);
-
-  const scrollX=-walkX*.5;
-
-  // Background mountains/hills
-  ctx.fillStyle=`rgba(${12+progress*8|0},${18+progress*8|0},${25+progress*10|0},0.6)`;
-  ctx.beginPath(); ctx.moveTo(0,groundY);
-  for(let x=0;x<=w;x+=3) ctx.lineTo(x,groundY-6-Math.sin(x*.02)*4-Math.sin(x*.04+1)*2);
-  ctx.lineTo(w,groundY); ctx.fill();
-
-  // Trees (bigger, more detailed)
-  for(let i=0;i<20;i++){
-    const tx=((i*40+scrollX*.2)%(w+100))-50;
-    const th=10+((i*3)%6);
-    const treeC=progress*.5;
-    // Trunk
-    ctx.fillStyle=`rgba(${30+treeC*20|0},${20+treeC*10|0},${12+treeC*8|0},0.8)`;
-    ctx.fillRect(tx,groundY-th,2,th);
-    // Canopy (bigger)
-    ctx.fillStyle=`rgba(${20+treeC*20|0},${40+treeC*15|0},${18+treeC*10|0},0.6)`;
-    ctx.beginPath();ctx.arc(tx+1,groundY-th-1,3+i%3,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=`rgba(${25+treeC*18|0},${50+treeC*12|0},${22+treeC*8|0},0.4)`;
-    ctx.beginPath();ctx.arc(tx,groundY-th+1,2+i%2,0,Math.PI*2);ctx.fill();
-  }
-
-  // Grass patches on ground
-  for(let i=0;i<30;i++){
-    const gx=((i*31+scrollX*.15)%(w+60))-30;
-    const gc=progress*.4;
-    ctx.fillStyle=`rgba(${25+gc*20|0},${40+gc*15|0},${15+gc*10|0},0.3)`;
-    ctx.fillRect(gx,groundY+1,3,1);
-    ctx.fillRect(gx+1,groundY,1,1);
-  }
-
-  // Small flowers (appearing with progress)
-  if(progress>.2){
-    for(let i=0;i<12;i++){
-      const ffx=((i*53+scrollX*.1)%(w+80))-40;
-      const ffy=groundY+1+((i*3)%3);
-      const fa=(progress-.2)*.8;
-      const fc=['rgba(229,80,120,','rgba(255,200,80,','rgba(200,120,220,'][i%3];
-      ctx.fillStyle=fc+fa+')';
-      ctx.fillRect(ffx,ffy,1,1);
-    }
-  }
-
-  // Rain (early part)
-  if(progress<.5){
-    const rAlpha=.08*(1-progress*2);
-    for(let i=0;i<20;i++){
-      const rx=(i*47+bgTime*.3)%w;
-      const ry=((bgTime*.5+i*73)%h);
-      ctx.fillStyle=`rgba(150,180,220,${rAlpha})`;
-      ctx.fillRect(rx,ry,1,2);
-    }
-  }
-
-  // Road (lighter, more visible)
-  const roadBright=30+progress*25;
-  ctx.fillStyle=`rgba(${roadBright+10|0},${roadBright+8|0},${roadBright+5|0},1)`;
-  ctx.fillRect(0,groundY+3,w,6);
-  // Road edges
-  ctx.fillStyle=`rgba(${roadBright+20|0},${roadBright+15|0},${roadBright+10|0},0.3)`;
-  ctx.fillRect(0,groundY+3,w,1);
-  ctx.fillRect(0,groundY+8,w,1);
-  // Center line dashes
-  for(let i=0;i<30;i++){
-    const dx=((i*14+scrollX)%(w+20))-10;
-    ctx.fillStyle=`rgba(200,200,180,${.12+progress*.12})`;
-    ctx.fillRect(dx,groundY+6,5,0.5);
-  }
-  // Road shoulder markings
-  for(let i=0;i<20;i++){
-    const dx=((i*18+scrollX*.8)%(w+30))-15;
-    ctx.fillStyle=`rgba(150,150,140,${.06+progress*.06})`;
-    ctx.fillRect(dx,groundY+4,2,0.5);
-  }
-
-  // Lamp posts along the road
-  for(let i=0;i<5;i++){
-    const lpx=((i*90+scrollX*.3)%(w+120))-60;
-    ctx.fillStyle=`rgba(60,55,50,0.6)`;
-    ctx.fillRect(lpx,groundY-8,1,11);
-    ctx.fillStyle=`rgba(255,220,150,${.15+progress*.15})`;
-    ctx.fillRect(lpx-1,groundY-9,3,1);
-    // Lamp glow
-    const lg=ctx.createRadialGradient(lpx,groundY-9,1,lpx,groundY-9,8);
-    lg.addColorStop(0,`rgba(255,220,150,${.04+progress*.04})`); lg.addColorStop(1,'transparent');
-    ctx.fillStyle=lg; ctx.fillRect(lpx-8,groundY-16,16,12);
-  }
-
-  // Maagii ahead
-  const msx=w*.5+(walkMaagiiX-walkX)*.5;
-  if(msx<w+40){
-    const dist=Math.max(1,(msx-w*.35)/w);
-    const ga=Math.max(0,.2-dist*.15);
-    const glow=ctx.createRadialGradient(msx,groundY-1,1,msx,groundY-1,24/dist);
-    glow.addColorStop(0,`rgba(229,49,112,${ga})`);
-    glow.addColorStop(.5,`rgba(255,150,100,${ga*.3})`);
-    glow.addColorStop(1,'transparent');
-    ctx.fillStyle=glow; ctx.fillRect(msx-40,groundY-40,80,60);
-    if(msx<w+10) drawMaagii(msx,groundY+1,2,Math.floor(bgTime*.002),false);
-  }
-
-  // Amartuvshin
-  const asx=w*.35;
-  walkFrame+=walkDir!==0?.15:0;
-  drawAmaraa(asx,groundY+1,2,Math.floor(walkFrame),walkDir<0);
-
-  // Distance text (2,714 km - Mongolia to Korea)
-  const kmRaw=Math.max(0,(walkMaagiiX-walkX)/walkMaagiiX);
-  const km=Math.round(kmRaw*2714);
-  if(km>0){
-    ctx.fillStyle='rgba(229,49,112,0.8)';
-    ctx.font="4px 'Press Start 2P'";ctx.textAlign='center';
-    ctx.fillText(km.toLocaleString()+' km to Maagii',w/2,h*.1);
-  }
-  ctx.textAlign='left';
-}
-
-function startWalk() {
-  return new Promise(resolve => {
-    walkActive = true; walkX = 0; walkReached = false; walkResolve = resolve;
-    bgMode = 'walk';
-  });
-}
-
-function updateWalk() {
-  if (!walkActive) return;
-  if (walkDir !== 0) {
-    walkX += walkDir * 1;
-    walkX = Math.max(0, walkX);
-  }
-  if (walkX >= walkMaagiiX - 10 && !walkReached) {
-    walkReached = true;
-    walkActive = false;
-    walkDir = 0;
-    setTimeout(() => {
-      spawnHearts(15);
-      setTimeout(() => { if (walkResolve) walkResolve(); }, 2000);
-    }, 500);
-  }
-}
-setInterval(updateWalk, 16);
-
-// Key/touch controls for walk
-document.addEventListener('keydown', e => {
-  if (!walkActive) return;
-  if (e.key === 'ArrowRight' || e.key === 'd') walkDir = 1;
-  if (e.key === 'ArrowLeft' || e.key === 'a') walkDir = -1;
-});
-document.addEventListener('keyup', e => {
-  if (!walkActive) return;
-  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'ArrowLeft' || e.key === 'a') walkDir = 0;
-});
-// Touch: tap right half = go right, left half = go left
-let touchWalking = false;
-document.addEventListener('touchstart', e => {
-  if (!walkActive) return;
-  e.preventDefault();
-  const x = e.touches[0].clientX;
-  walkDir = x > window.innerWidth / 2 ? 1 : -1;
-  touchWalking = true;
-}, {passive:false});
-document.addEventListener('touchend', () => {
-  if (touchWalking) { walkDir = 0; touchWalking = false; }
-});
-
-// ---- TYPEWRITER ----
-function typeWriter(el, text, speed=35) {
-  return new Promise(resolve => {
-    const parsed = text.replace(/\{h\}(.*?)\{\/h\}/g,'<span class="highlight">$1</span>')
-      .replace(/\{g\}(.*?)\{\/g\}/g,'<span class="gold">$1</span>')
-      .replace(/\{gr\}(.*?)\{\/gr\}/g,'<span class="green">$1</span>');
-    const stripped = parsed.replace(/<[^>]*>/g,'');
-    let ci = 0;
-    function type() {
-      if (ci <= stripped.length) {
-        let display='', ri=0, inTag=false;
-        for (let j=0;j<parsed.length&&ri<=ci;j++) {
-          if (parsed[j]==='<') { inTag=true; display+=parsed[j]; }
-          else if (parsed[j]==='>') { inTag=false; display+=parsed[j]; }
-          else if (inTag) display+=parsed[j];
-          else { if (ri<ci) display+=parsed[j]; ri++; }
-        }
-        const ot=(display.match(/<span[^>]*>/g)||[]).length;
-        const ct=(display.match(/<\/span>/g)||[]).length;
-        for(let t=0;t<ot-ct;t++) display+='</span>';
-        el.innerHTML=display+'<span style="animation:blink .5s infinite">_</span>';
-        ci++; setTimeout(type,speed);
-      } else { el.innerHTML=parsed; resolve(); }
-    }
-    type();
-  });
-}
-
-// ---- SCENE ENGINE ----
-const scenes=[]; let currentScene=-1, currentDI=0, isTransitioning=false, canAdvance=true;
-
-function createSceneEl(id) { const d=document.createElement('div'); d.className='scene'; d.id=id; game.appendChild(d); return d; }
-
-async function showScene(i) {
-  if (isTransitioning) return;
-  isTransitioning=true;
-  const cur=game.querySelector('.scene.active');
-  if(cur){cur.classList.remove('active');await sleep(800);}
-  currentScene=i; currentDI=0;
-  charAnimations=[];
-  const sc=scenes[i];
-  if(sc.bg) bgMode=sc.bg;
-  if(sc.onEnter) await sc.onEnter();
-  const el=document.getElementById(sc.id);
-  if(el) {el.classList.add('active');await sleep(400);}
-  if(sc.dialogues&&sc.dialogues.length>0) await showDlg(sc,0);
-  isTransitioning=false;
-}
-
-async function showDlg(sc,idx) {
-  if(idx>=sc.dialogues.length){if(sc.onComplete)await sc.onComplete();return;}
-  currentDI=idx;
-  const d=sc.dialogues[idx], el=document.getElementById(sc.id);
-  if(d.action==='showPhoto'){showPhoto(d.photo,d.caption);await sleep(300);}
-  if(d.action==='hidePhoto'){hidePhoto();await sleep(300);}
-  if(d.action==='showVisa'){showVisaStamp(el);await sleep(1500);}
-  if(d.action==='showKm'){await showKmCounter(el);}
-  if(d.action==='wait'){await sleep(d.duration||2000);advanceDlg();return;}
-  if(d.action==='changeBg'){bgMode=d.bg;}
-  if(d.action==='addChar'){charAnimations.push(d.char);}
-  if(d.action==='clearChars'){charAnimations=[];}
-  if(d.action==='moveChars'&&d.fn){await d.fn();}
-  if(d.action==='walk'){
-    const walkEl=document.getElementById(sc.id);
-    const inst=walkEl.querySelector('.walk-instructions');
-    if(inst)inst.style.opacity='1';
-    await startWalk();
-    if(inst)inst.style.opacity='0';
-    advanceDlg();return;
-  }
-  if(d.text){
-    const te=el.querySelector('.dialogue-text');
-    if(te){
-      const sp=el.querySelector('.speaker-name');
-      if(sp) sp.textContent=d.speaker||'';
-      canAdvance=false;
-      await typeWriter(te,d.text,d.speed||35);
-      canAdvance=true;
-    }
-  }
-}
-
-function advanceDlg() {
-  if(isTransitioning||!canAdvance)return;
-  const sc=scenes[currentScene];
-  if(!sc||!sc.dialogues)return;
-  const ni=currentDI+1;
-  if(ni>=sc.dialogues.length){if(currentScene+1<scenes.length)showScene(currentScene+1);}
-  else showDlg(sc,ni);
-}
-
-// ---- PHOTO SYSTEM ----
-let photoCont=null;
-function createPhotoSys(){photoCont=document.createElement('div');photoCont.className='photo-container';photoCont.innerHTML='<div class="photo-frame"><img id="photoImg" src="" alt=""><div class="photo-hearts" id="photoHearts"></div></div><div class="photo-caption" id="photoCaption"></div>';game.appendChild(photoCont);}
-createPhotoSys();
-function showPhoto(s,c){
-  $('#photoImg').src='photos/'+s;$('#photoCaption').textContent=c||'';
-  // Create floating hearts around the photo
-  const hc=$('#photoHearts');hc.innerHTML='';
-  for(let i=0;i<8;i++){
-    const h=document.createElement('span');h.className='photo-heart';h.textContent='♥';
-    h.style.left=(Math.random()*200-100)+'px';
-    h.style.animationDelay=(0.2+Math.random()*1.5)+'s';
-    h.style.fontSize=(10+Math.random()*12)+'px';
-    hc.appendChild(h);
-  }
-  photoCont.classList.add('visible');
-}
-function hidePhoto(){photoCont.classList.remove('visible');}
-
-// ---- VISA STAMP ----
-function showVisaStamp(p){const s=document.createElement('div');s.className='visa-stamp';s.textContent='DENIED';s.style.opacity='0';p.appendChild(s);setTimeout(()=>{s.style.opacity='1';p.style.animation='shake .3s';if(audioCtx){playNote(110,.5,audioCtx.currentTime,'sawtooth',.1);playNote(80,.8,audioCtx.currentTime+.1,'sawtooth',.08);}setTimeout(()=>p.style.animation='',300);},100);setTimeout(()=>{s.style.transition='opacity 2s';s.style.opacity='0';setTimeout(()=>s.remove(),2000);},3000);}
-
-// ---- KM COUNTER ----
-function showKmCounter(p){return new Promise(r=>{const c=document.createElement('div');c.className='km-counter';c.textContent='0 km';p.appendChild(c);c.style.opacity='1';let k=0;const iv=setInterval(()=>{k+=Math.ceil((500-k)*.05)+1;if(k>=500){k=500;clearInterval(iv);c.textContent='500 km';setTimeout(()=>{c.style.transition='opacity 1.5s';c.style.opacity='0';setTimeout(()=>{c.remove();r();},1500);},1500);}c.textContent=k+' km';},50);});}
-
-// ---- HEARTS ----
-function spawnHearts(n=20){for(let i=0;i<n;i++){setTimeout(()=>{const h=document.createElement('div');h.className='floating-heart';h.textContent='♥';h.style.left=Math.random()*100+'vw';h.style.bottom='-20px';h.style.fontSize=(12+Math.random()*24)+'px';h.style.color=`hsl(${340+Math.random()*30},80%,${50+Math.random()*20}%)`;game.appendChild(h);const d=3000+Math.random()*4000;h.animate([{transform:'translateY(0) rotate(0deg)',opacity:.8},{transform:`translateY(-${window.innerHeight+50}px) rotate(${Math.random()*360}deg)`,opacity:0}],{duration:d,easing:'ease-out'});setTimeout(()=>h.remove(),d);},i*200);}}
-
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-
-// ==========================================
-// SCENE DEFINITIONS
-// ==========================================
-
-// Helper for standard dialogue scene
-function dialogueSceneHTML(chNum, chTitle) {
-  return `
+    // Helper for standard dialogue scene
+    function dialogueSceneHTML(chNum, chTitle) {
+      return `
     ${chNum ? `<div class="chapter-title"><div class="chapter-num">CHAPTER ${chNum}</div><h2>${chTitle}</h2></div>` : ''}
     <div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">tap ▼</div></div></div>
   `;
-}
-
-async function showChapterTitle(el, delay=2500) {
-  const ct = el.querySelector('.chapter-title');
-  if (!ct) return;
-  el.classList.add('active');
-  await sleep(300);
-  ct.style.opacity = '1';
-  await sleep(delay);
-  ct.style.transition = 'opacity 1s ease';
-  ct.style.opacity = '0';
-  await sleep(1000);
-}
-
-// --- BOOT ---
-scenes.push({id:'boot',bg:'stars',dialogues:[],onEnter:async()=>{
-  const el=createSceneEl('boot');
-  el.innerHTML='<div class="boot-text" id="bootText"></div>';
-  el.classList.add('active');
-  const lines=['> SYSTEM BOOT...','> LOADING MEMORIES.............. OK','> INITIALIZING HEART........... OK','> SCANNING FOR: MAAGII','> STATUS: <span class="highlight">ALWAYS CONNECTED</span>','> DISTANCE: 2,714 km','> LOVE LEVEL: ████████████ MAX','> ','> LAUNCHING: 500km_to_you.exe'];
-  const bt=$('#bootText');
-  for(const l of lines){const s=document.createElement('span');s.className='boot-line';bt.appendChild(s);s.innerHTML=l;await sleep(80);s.style.opacity='1';s.style.animation='fadeIn .3s';if(audioCtx)playNote(800+Math.random()*400,.05,audioCtx.currentTime,'square',.03);await sleep(300);}
-  await sleep(1500);el.classList.remove('active');await sleep(800);el.remove();
-  isTransitioning=false;showScene(1);
-}});
-
-// --- TITLE ---
-scenes.push({id:'title',bg:'stars',dialogues:[],onEnter:async()=>{
-  const el=createSceneEl('title');
-  el.innerHTML='<div class="pixel-heart">♥</div><h1>500km<br>to You</h1><div class="subtitle">A Love Story</div><div class="start-prompt" id="startPrompt">[ Click anywhere to begin ]</div>';
-  el.classList.add('active');
-  // Show characters on title screen
-  charAnimations=[
-    {type:'amaraa',x:GAME_W*0.35,y:GAME_H*0.82,scale:2,frame:0,speed:0},
-    {type:'maagii',x:GAME_W*0.65,y:GAME_H*0.82,scale:2,frame:0,speed:0}
-  ];
-  await sleep(2500);$('#startPrompt').style.opacity='1';$('#musicBtn').style.display='block';
-  await new Promise(r=>{const h=()=>{document.removeEventListener('click',h);initAudio();startMusic();r();};document.addEventListener('click',h);});
-  charAnimations=[];
-  el.classList.remove('active');await sleep(800);el.remove();
-  isTransitioning=false;showScene(2);
-}});
-
-// --- CH1: THE SWIPE ---
-scenes.push({id:'ch1',bg:'stars',dialogues:[
-  {action:'wait',duration:3000},
-  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.5,y:GAME_H*0.55,scale:2,frame:0,speed:0}},
-  {text:"It started with a {h}swipe{/h}.",speed:45},
-  {text:"Just one. To the right.",speed:40},
-  {text:"Out of all the faces, all the profiles...\nthe algorithm chose {h}you{/h}.",speed:35},
-  {text:"{g}IT'S A MATCH{/g}",speed:80},
-  {text:"And just like that,\nmy whole life changed direction.",speed:35},
-],onEnter:async()=>{
-  const el=createSceneEl('ch1');
-  el.innerHTML=dialogueSceneHTML('I','The Swipe');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
-
-// --- CH2: THE FOUNTAIN ---
-scenes.push({id:'ch2',bg:'fountain',dialogues:[
-  {action:'wait',duration:2500},
-  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.25,y:GAME_H*0.72,scale:2,frame:0,speed:0.08}},
-  {text:"We agreed to meet at the {g}fountain{/g}.",speed:35},
-  {text:"I walked there.\nTrying to look cool. Calm.",speed:35},
-  {text:"My heart was beating\nlike it wanted to escape my chest.",speed:30},
-  {action:'addChar',char:{type:'maagii',x:GAME_W*0.75,y:GAME_H*0.72,scale:2,frame:0,speed:0.08,flip:true}},
-  {text:"Then I saw you.",speed:50},
-  {text:"Standing there,\nmore beautiful than any photo could show.",speed:30},
-  {action:'moveChars',fn:async()=>{
-    // Walk toward each other
-    const a=charAnimations.find(c=>c.type==='amaraa');
-    const m=charAnimations.find(c=>c.type==='maagii');
-    if(a&&m){
-      const targetA=GAME_W*0.45,targetM=GAME_W*0.55;
-      for(let i=0;i<60;i++){
-        a.x+=(targetA-a.x)*0.05; m.x+=(targetM-m.x)*0.05;
-        await sleep(30);
-      }
     }
-  }},
-  {text:"And I forgot every word\nI had planned to say.",speed:35},
-],onEnter:async()=>{
-  const el=createSceneEl('ch2');
-  el.innerHTML=dialogueSceneHTML('II','The Fountain');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
 
-// --- CH3: DRAFT BEER ---
-scenes.push({id:'ch3',bg:'pub',dialogues:[
-  {action:'wait',duration:3000},
-  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.4,y:GAME_H*0.63,scale:2,frame:0,speed:0}},
-  {action:'addChar',char:{type:'maagii',x:GAME_W*0.6,y:GAME_H*0.63,scale:2,frame:0,speed:0,flip:true}},
-  {text:"We found a pub.\nOrdered {g}draft beer{/g}. Two glasses.",speed:35},
-  {text:"I talked.\nYou listened.\nYou laughed.\n{h}I fell.{/h}",speed:40},
-  {text:"I reached across the table\nand took your hands in mine.",speed:35},
-  {text:"I kissed them.\nSoftly. Like they were\nthe most precious thing in the world.",speed:30},
-  {text:"Because they were.",speed:55},
-  {text:"And when you smiled at me...\nyour {h}teeth{/h}, your beautiful teeth...\nthat smile lit up the whole room.",speed:28},
-  {text:"I acted cold on the outside.\nBut inside I was already {h}yours{/h}.",speed:35},
-  {action:'clearChars'},
-  {action:'showPhoto',photo:'maagii_pub.jpg',caption:'— That smile. Those teeth. I was done. —',text:"That smile. Those teeth.\n{h}I was done.{/h}",speed:40},
-  {action:'hidePhoto'},
-],onEnter:async()=>{
-  const el=createSceneEl('ch3');
-  el.innerHTML=dialogueSceneHTML('III','Draft Beer');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
+    async function showChapterTitle(el, delay = 2500) {
+      const ct = el.querySelector('.chapter-title');
+      if (!ct) return;
+      el.classList.add('active');
+      await sleep(300);
+      ct.style.opacity = '1';
+      await sleep(delay);
+      ct.style.transition = 'opacity 1s ease';
+      ct.style.opacity = '0';
+      await sleep(1000);
+    }
 
-// --- CH4: FALLING ---
-scenes.push({id:'ch4',bg:'hearts',dialogues:[
-  {action:'wait',duration:3000},
-  {text:"Two years.\nI won't lie and say\nit was easy.",speed:35},
-  {text:"It was {h}hard{/h}.\nSo hard sometimes\nI didn't know if we'd survive it.",speed:30},
-  {text:"We fought.\nNot small fights.\n{h}Real{/h} fights.\nThe kind that break things.",speed:28},
-  {text:"You'd say I don't love you.\nThat I only tell you words\nbut never {h}show{/h} it.",speed:28},
-  {text:"You'd say I'm lying.\nThat my actions don't match\nwhat I say.",speed:30},
-  {text:"And every time...\nit tore me apart.\nBecause I didn't know\nhow to {h}prove{/h} it.",speed:28},
-  {text:"I'm not the guy who brings flowers\nor writes long messages.\nI show love {h}differently{/h}.",speed:30},
-  {text:"But you needed more.\nAnd I didn't know how to give it.",speed:35},
-  {text:"We'd break.\nThen come back.\nBreak again.\nCome back again.",speed:30},
-  {text:"Because no matter how hard\nwe fought...\nwe couldn't stay {h}apart{/h}.",speed:30},
-  {action:'showPhoto',photo:'photobooth.jpg',caption:'— Between all the fights, there was this. —',text:"Between all the storms...\nthere was {h}this{/h}.",speed:35},
-  {action:'hidePhoto'},
-  {text:"These moments.\nWhen everything was quiet.\nAnd it was just {h}us{/h}.",speed:30},
-  {text:"Two years of war and peace.\nAnd I'd fight through\nevery second of it again.",speed:30},
-],onEnter:async()=>{
-  const el=createSceneEl('ch4');
-  el.innerHTML=dialogueSceneHTML('IV','Falling');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
+    // --- BOOT ---
+    scenes.push({
+      id: 'boot', bg: 'stars', dialogues: [], onEnter: async () => {
+        const el = createSceneEl('boot');
+        el.innerHTML = '<div class="boot-text" id="bootText"></div>';
+        el.classList.add('active');
+        const lines = ['> SYSTEM BOOT...', '> LOADING MEMORIES.............. OK', '> INITIALIZING HEART........... OK', '> SCANNING FOR: MAAGII', '> STATUS: <span class="highlight">ALWAYS CONNECTED</span>', '> DISTANCE: 2,714 km', '> LOVE LEVEL: ████████████ MAX', '> ', '> LAUNCHING: 500km_to_you.exe'];
+        const bt = $('#bootText');
+        for (const l of lines) { const s = document.createElement('span'); s.className = 'boot-line'; bt.appendChild(s); s.innerHTML = l; await sleep(80); s.style.opacity = '1'; s.style.animation = 'fadeIn .3s'; if (audioCtx) playNote(800 + Math.random() * 400, .05, audioCtx.currentTime, 'square', .03); await sleep(300); }
+        await sleep(1500); el.classList.remove('active'); await sleep(800); el.remove();
+        isTransitioning = false; showScene(1);
+      }
+    });
 
-// --- CH5: 500KM TO BULGAN ---
-scenes.push({id:'ch5',bg:'steppe',dialogues:[
-  {action:'wait',duration:3000},
-  {action:'showKm'},
-  {text:"{g}500 kilometers{/g}\nthrough the Mongolian steppe.",speed:35},
-  {text:"I told you —\nif we meet my mother,\n{h}we will marry{/h}.",speed:35},
-  {text:"That's why I drove 500km.\nBecause I {h}meant{/h} it.",speed:35},
-  {text:"500 kilometers of open road.\nJust you and me and the stars.",speed:30},
-  // Transition to ger scene
-  {action:'changeBg',bg:'ger'},
-  {action:'clearChars'},
-  {action:'wait',duration:1500},
-  {action:'addChar',char:{type:'mom',x:GAME_W*0.5,y:GAME_H*0.78,scale:2,frame:0,speed:0}},
-  {action:'wait',duration:800},
-  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.25,y:GAME_H*0.82,scale:2,frame:0,speed:0}},
-  {action:'addChar',char:{type:'maagii',x:GAME_W*0.75,y:GAME_H*0.82,scale:2,frame:0,speed:0,flip:true}},
-  {text:"We entered the ger.\nMy mother was waiting.",speed:35},
-  {text:"She looked at you\nand {h}smiled{/h}.",speed:40},
-  {text:"She held your hands\nand said welcome.",speed:35},
-  {text:"In that moment,\nyou were already {h}family{/h}.",speed:35},
-  {text:"My mother loved you.\nShe saw what I see.",speed:40},
-  {text:"That was the most {h}precious{/h}\nmoment of my life.",speed:35},
-  {text:"And I would drive\n{h}500 more{/h}.",speed:50},
-],onEnter:async()=>{
-  const el=createSceneEl('ch5');
-  el.innerHTML=dialogueSceneHTML('V','500km to Bulgan');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
+    // --- TITLE ---
+    scenes.push({
+      id: 'title', bg: 'stars', dialogues: [], onEnter: async () => {
+        const el = createSceneEl('title');
+        el.innerHTML = '<div class="pixel-heart">♥</div><h1>500km<br>to You</h1><div class="subtitle">A Love Story</div><div class="start-prompt" id="startPrompt">[ Click anywhere to begin ]</div>';
+        el.classList.add('active');
+        // Show characters on title screen
+        charAnimations = [
+          { type: 'amaraa', x: GAME_W * 0.35, y: GAME_H * 0.82, scale: 2, frame: 0, speed: 0 },
+          { type: 'maagii', x: GAME_W * 0.65, y: GAME_H * 0.82, scale: 2, frame: 0, speed: 0 }
+        ];
+        await sleep(2500); $('#startPrompt').style.opacity = '1'; $('#musicBtn').style.display = 'block';
+        await new Promise(r => { const h = () => { document.removeEventListener('click', h); initAudio(); startMusic(); r(); }; document.addEventListener('click', h); });
+        charAnimations = [];
+        el.classList.remove('active'); await sleep(800); el.remove();
+        isTransitioning = false; showScene(2);
+      }
+    });
 
-// --- CH6: THE DISTANCE ---
-scenes.push({id:'ch6',bg:'rain',dialogues:[
-  {action:'wait',duration:3000},
-  {text:"Then you left for {g}Korea{/g}.\nTo study. For your family.",speed:35},
-  {text:"I tried to follow you.",speed:45},
-  {action:'showVisa',text:"My visa...",speed:60},
-  {text:"{h}DENIED.{/h}",speed:100},
-  {text:"The world put an ocean\nbetween us.",speed:35},
-  {text:"We fought.\nI was jealous.\nNot because I don't trust you.",speed:30},
-  {text:"But because I was {h}terrified{/h}\nof losing the only person...",speed:30},
-  {text:"...who ever made me\nfeel {h}everything{/h}.",speed:35},
-  {action:'showPhoto',photo:'maagii_korea.jpg',caption:"— You're there. I'm here. And it hurts. —",text:"You're there.\nI'm here.\nAnd it hurts.",speed:40},
-  {action:'hidePhoto'},
-],onEnter:async()=>{
-  const el=createSceneEl('ch6');
-  el.innerHTML=dialogueSceneHTML('VI','The Distance');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
+    // --- CH1: THE SWIPE ---
+    scenes.push({
+      id: 'ch1', bg: 'stars', dialogues: [
+        { action: 'wait', duration: 3000 },
+        { action: 'addChar', char: { type: 'amaraa', x: GAME_W * 0.5, y: GAME_H * 0.55, scale: 2, frame: 0, speed: 0 } },
+        { text: "It started with a {h}swipe{/h}.", speed: 45 },
+        { text: "Just one. To the right.", speed: 40 },
+        { text: "Out of all the faces, all the profiles...\nthe algorithm chose {h}you{/h}.", speed: 35 },
+        { text: "{g}IT'S A MATCH{/g}", speed: 80 },
+        { text: "And just like that,\nmy whole life changed direction.", speed: 35 },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch1');
+        el.innerHTML = dialogueSceneHTML('I', 'The Swipe');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
 
-// --- CH7: THE RING ---
-scenes.push({id:'ch7',bg:'darkroom',dialogues:[
-  {action:'wait',duration:2500},
-  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.35,y:GAME_H*0.72,scale:2,frame:0,speed:0}},
-  {text:"One night, I sat in my room.\nStaring at a small box.",speed:30},
-  {text:"A {h}ring{/h}.",speed:60},
-  {text:"I couldn't fly to you.\nBut I could send my {h}promise{/h}.",speed:30},
-  {text:"I packed it carefully.\nWrote the address in Korea.\nHanded it to the cargo office.",speed:28},
-  {text:"A small box,\ncrossing an ocean,\ncarrying everything I feel.",speed:30},
-  {text:"Every other guy sends flowers.\nI sent you a {h}ring{/h}.\nBecause I don't do things halfway.",speed:30},
-  {text:"I hope when you held it...\nyou felt my hands\naround yours.",speed:35},
-],onEnter:async()=>{
-  const el=createSceneEl('ch7');
-  el.innerHTML=dialogueSceneHTML('VII','The Ring');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
+    // --- CH2: THE FOUNTAIN ---
+    scenes.push({
+      id: 'ch2', bg: 'fountain', dialogues: [
+        { action: 'wait', duration: 2500 },
+        { action: 'addChar', char: { type: 'amaraa', x: GAME_W * 0.25, y: GAME_H * 0.72, scale: 2, frame: 0, speed: 0.08 } },
+        { text: "We agreed to meet at the {g}fountain{/g}.", speed: 35 },
+        { text: "I walked there.\nTrying to look cool. Calm.", speed: 35 },
+        { text: "My heart was beating\nlike it wanted to escape my chest.", speed: 30 },
+        { action: 'addChar', char: { type: 'maagii', x: GAME_W * 0.75, y: GAME_H * 0.72, scale: 2, frame: 0, speed: 0.08, flip: true } },
+        { text: "Then I saw you.", speed: 50 },
+        { text: "Standing there,\nmore beautiful than any photo could show.", speed: 30 },
+        {
+          action: 'moveChars', fn: async () => {
+            // Walk toward each other
+            const a = charAnimations.find(c => c.type === 'amaraa');
+            const m = charAnimations.find(c => c.type === 'maagii');
+            if (a && m) {
+              const targetA = GAME_W * 0.45, targetM = GAME_W * 0.55;
+              for (let i = 0; i < 60; i++) {
+                a.x += (targetA - a.x) * 0.05; m.x += (targetM - m.x) * 0.05;
+                await sleep(30);
+              }
+            }
+          }
+        },
+        { text: "And I forgot every word\nI had planned to say.", speed: 35 },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch2');
+        el.innerHTML = dialogueSceneHTML('II', 'The Fountain');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
 
-// --- CH8: THE STRUGGLE ---
-scenes.push({id:'ch8',bg:'darkroom',dialogues:[
-  {action:'wait',duration:3000},
-  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.46,y:GAME_H*0.72,scale:2,frame:0,speed:0}},
-  {text:"You don't know what happens\nwhen I put down my phone.",speed:30},
-  {text:"The {h}anxiety{/h} hits.\nMy chest tightens.\nI can't breathe.",speed:28},
-  {text:"I sit alone in my room\nin Ulaanbaatar.\nThe city is loud but I hear {h}nothing{/h}.",speed:28},
-  {text:"I wake up at 3am\nreaching for you.\nBut the bed is {h}empty{/h}.",speed:30},
-  {text:"I check my phone.\n{h}No messages.{/h}\nI don't even know where you are.",speed:28},
-  {text:"So I open my laptop.\nAnd I {g}work{/g}.",speed:40},
-  {text:"Through the pain.\nThrough the tears I'll never admit to.\nThrough the panic attacks.",speed:25},
-  {text:"Every line of code I write,\nevery prompt I craft...\nI do it thinking of {h}us{/h}.",speed:30},
-  {text:"Some days I can barely function.\nBut I {h}keep going{/h}.",speed:35},
-  {text:"Because giving up on my work\nwould mean giving up on\nmy chance to reach you.",speed:30},
-  {text:"You are in Korea.\nStruggling for your family.\nFor your {h}mother{/h}. For your {h}brother{/h}.",speed:30},
-  {text:"But God...\nI wish I was there\nwalking beside you.",speed:35},
-],onEnter:async()=>{
-  const el=createSceneEl('ch8');
-  el.innerHTML=dialogueSceneHTML('VIII','The Struggle');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
+    // --- CH3: DRAFT BEER ---
+    scenes.push({
+      id: 'ch3', bg: 'pub', dialogues: [
+        { action: 'wait', duration: 3000 },
+        { action: 'addChar', char: { type: 'amaraa', x: GAME_W * 0.4, y: GAME_H * 0.63, scale: 2, frame: 0, speed: 0 } },
+        { action: 'addChar', char: { type: 'maagii', x: GAME_W * 0.6, y: GAME_H * 0.63, scale: 2, frame: 0, speed: 0, flip: true } },
+        { text: "We found a pub.\nOrdered {g}draft beer{/g}. Two glasses.", speed: 35 },
+        { text: "I talked.\nYou listened.\nYou laughed.\n{h}I fell.{/h}", speed: 40 },
+        { text: "I reached across the table\nand took your hands in mine.", speed: 35 },
+        { text: "I kissed them.\nSoftly. Like they were\nthe most precious thing in the world.", speed: 30 },
+        { text: "Because they were.", speed: 55 },
+        { text: "And when you smiled at me...\nyour {h}teeth{/h}, your beautiful teeth...\nthat smile lit up the whole room.", speed: 28 },
+        { text: "I acted cold on the outside.\nBut inside I was already {h}yours{/h}.", speed: 35 },
+        { action: 'clearChars' },
+        { action: 'showPhoto', photo: 'maagii_pub.jpg', caption: '— That smile. Those teeth. I was done. —', text: "That smile. Those teeth.\n{h}I was done.{/h}", speed: 40 },
+        { action: 'hidePhoto' },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch3');
+        el.innerHTML = dialogueSceneHTML('III', 'Draft Beer');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
 
-// --- CH8.5: WHAT YOU GAVE ME ---
-scenes.push({id:'ch8b',bg:'darkroom',dialogues:[
-  {action:'wait',duration:3000},
-  {text:"But I need you to know something.",speed:35},
-  {text:"You say I don't {h}show{/h} love?\nMaagii... look at what {h}you{/h} gave me.",speed:30},
-  {text:"You gave me {g}Air Force 1s{/g}.\nThe exact ones I always wanted.",speed:30},
-  {action:'showPhoto',photo:'airforce1.jpg',caption:'— She always knew what I wanted. —',text:"You remembered.\nYou always remembered.",speed:35},
-  {action:'hidePhoto'},
-  {text:"You gave me a {g}gaming mouse{/g}.\nBecause you know I'm a gamer\nand you wanted me to be {h}happy{/h}.",speed:28},
-  {action:'showPhoto',photo:'gaming_mouse.jpg',caption:'— She knows me better than I know myself. —',text:"You know me better\nthan I know myself.",speed:35},
-  {action:'hidePhoto'},
-  {text:"You sent me {g}vitamins{/g}\nfrom Korea.\nBecause you worry about\nmy {h}health{/h}.",speed:28},
-  {action:'showPhoto',photo:'maagii_vitamins.jpg',caption:'— Even from across the ocean, she takes care of me. —',text:"Even from 2,714 km away,\nyou take care of me.",speed:30},
-  {action:'hidePhoto'},
-  {text:"And at my {g}graduation{/g}...\nyou sent me {h}flowers{/h}.",speed:35},
-  {action:'showPhoto',photo:'graduation.jpg',caption:'— She made my graduation complete. —',text:"You couldn't be there.\nBut your flowers were.\nAnd I felt you {h}everywhere{/h}.",speed:28},
-  {action:'hidePhoto'},
-  {text:"But more than any gift...",speed:50},
-  {text:"You gave me something\nno one else ever had.",speed:35},
-  {text:"You gave me your {h}trust{/h}.\nYour walls came down.\nFor {h}me{/h}.",speed:30},
-  {text:"You gave me your {h}pride{/h}.\nYour control.\nEverything you held so tightly.",speed:28},
-  {text:"You gave me {h}all of you{/h}.\nThings you never gave anyone.\nThings you'll never get back.",speed:28},
-  {text:"And I will {h}never{/h}\ntake that for granted.",speed:40},
-  {text:"That wasn't just love.\nThat was {h}everything{/h}.",speed:35},
-  {text:"So don't tell me\nwe don't show love\nthrough {h}actions{/h}.",speed:35},
-  {text:"We both do.\nWe just {h}struggle{/h}\nto see it sometimes.",speed:35},
-],onEnter:async()=>{
-  const el=createSceneEl('ch8b');
-  el.innerHTML=dialogueSceneHTML('IX','What You Gave Me');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
+    // --- CH4: FALLING ---
+    scenes.push({
+      id: 'ch4', bg: 'hearts', dialogues: [
+        { action: 'wait', duration: 3000 },
+        { text: "Two years.\nI won't lie and say\nit was easy.", speed: 35 },
+        { text: "It was {h}hard{/h}.\nSo hard sometimes\nI didn't know if we'd survive it.", speed: 30 },
+        { text: "We fought.\nNot small fights.\n{h}Real{/h} fights.\nThe kind that break things.", speed: 28 },
+        { text: "You'd say I don't love you.\nThat I only tell you words\nbut never {h}show{/h} it.", speed: 28 },
+        { text: "You'd say I'm lying.\nThat my actions don't match\nwhat I say.", speed: 30 },
+        { text: "And every time...\nit tore me apart.\nBecause I didn't know\nhow to {h}prove{/h} it.", speed: 28 },
+        { text: "I'm not the guy who brings flowers\nor writes long messages.\nI show love {h}differently{/h}.", speed: 30 },
+        { text: "But you needed more.\nAnd I didn't know how to give it.", speed: 35 },
+        { text: "We'd break.\nThen come back.\nBreak again.\nCome back again.", speed: 30 },
+        { text: "Because no matter how hard\nwe fought...\nwe couldn't stay {h}apart{/h}.", speed: 30 },
+        { action: 'showPhoto', photo: 'photobooth.jpg', caption: '— Between all the fights, there was this. —', text: "Between all the storms...\nthere was {h}this{/h}.", speed: 35 },
+        { action: 'hidePhoto' },
+        { text: "These moments.\nWhen everything was quiet.\nAnd it was just {h}us{/h}.", speed: 30 },
+        { text: "Two years of war and peace.\nAnd I'd fight through\nevery second of it again.", speed: 30 },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch4');
+        el.innerHTML = dialogueSceneHTML('IV', 'Falling');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
 
-// --- INTERACTIVE WALK ---
-scenes.push({id:'walkScene',bg:'walk',dialogues:[
-  {action:'wait',duration:1500},
-  {action:'walk'},
-  {action:'changeBg',bg:'hearts'},
-  {action:'clearChars'},
-],onEnter:async()=>{
-  const el=createSceneEl('walkScene');
-  el.innerHTML=`
+    // --- CH5: 500KM TO BULGAN ---
+    scenes.push({
+      id: 'ch5', bg: 'steppe', dialogues: [
+        { action: 'wait', duration: 3000 },
+        { action: 'showKm' },
+        { text: "{g}500 kilometers{/g}\nthrough the Mongolian steppe.", speed: 35 },
+        { text: "I told you —\nif we meet my mother,\n{h}we will marry{/h}.", speed: 35 },
+        { text: "That's why I drove 500km.\nBecause I {h}meant{/h} it.", speed: 35 },
+        { text: "500 kilometers of open road.\nJust you and me and the stars.", speed: 30 },
+        // Transition to ger scene
+        { action: 'changeBg', bg: 'ger' },
+        { action: 'clearChars' },
+        { action: 'wait', duration: 1500 },
+        { action: 'addChar', char: { type: 'mom', x: GAME_W * 0.5, y: GAME_H * 0.78, scale: 2, frame: 0, speed: 0 } },
+        { action: 'wait', duration: 800 },
+        { action: 'addChar', char: { type: 'amaraa', x: GAME_W * 0.25, y: GAME_H * 0.82, scale: 2, frame: 0, speed: 0 } },
+        { action: 'addChar', char: { type: 'maagii', x: GAME_W * 0.75, y: GAME_H * 0.82, scale: 2, frame: 0, speed: 0, flip: true } },
+        { text: "We entered the ger.\nMy mother was waiting.", speed: 35 },
+        { text: "She looked at you\nand {h}smiled{/h}.", speed: 40 },
+        { text: "She held your hands\nand said welcome.", speed: 35 },
+        { text: "In that moment,\nyou were already {h}family{/h}.", speed: 35 },
+        { text: "My mother loved you.\nShe saw what I see.", speed: 40 },
+        { text: "That was the most {h}precious{/h}\nmoment of my life.", speed: 35 },
+        { text: "And I would drive\n{h}500 more{/h}.", speed: 50 },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch5');
+        el.innerHTML = dialogueSceneHTML('V', '500km to Bulgan');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
+
+    // --- CH6: THE DISTANCE ---
+    scenes.push({
+      id: 'ch6', bg: 'rain', dialogues: [
+        { action: 'wait', duration: 3000 },
+        { text: "Then you left for {g}Korea{/g}.\nTo study. For your family.", speed: 35 },
+        { text: "I tried to follow you.", speed: 45 },
+        { action: 'showVisa', text: "My visa...", speed: 60 },
+        { text: "{h}DENIED.{/h}", speed: 100 },
+        { text: "The world put an ocean\nbetween us.", speed: 35 },
+        { text: "We fought.\nI was jealous.\nNot because I don't trust you.", speed: 30 },
+        { text: "But because I was {h}terrified{/h}\nof losing the only person...", speed: 30 },
+        { text: "...who ever made me\nfeel {h}everything{/h}.", speed: 35 },
+        { action: 'showPhoto', photo: 'maagii_korea.jpg', caption: "— You're there. I'm here. And it hurts. —", text: "You're there.\nI'm here.\nAnd it hurts.", speed: 40 },
+        { action: 'hidePhoto' },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch6');
+        el.innerHTML = dialogueSceneHTML('VI', 'The Distance');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
+
+    // --- CH7: THE RING ---
+    scenes.push({
+      id: 'ch7', bg: 'darkroom', dialogues: [
+        { action: 'wait', duration: 2500 },
+        { action: 'addChar', char: { type: 'amaraa', x: GAME_W * 0.35, y: GAME_H * 0.72, scale: 2, frame: 0, speed: 0 } },
+        { text: "One night, I sat in my room.\nStaring at a small box.", speed: 30 },
+        { text: "A {h}ring{/h}.", speed: 60 },
+        { text: "I couldn't fly to you.\nBut I could send my {h}promise{/h}.", speed: 30 },
+        { text: "I packed it carefully.\nWrote the address in Korea.\nHanded it to the cargo office.", speed: 28 },
+        { text: "A small box,\ncrossing an ocean,\ncarrying everything I feel.", speed: 30 },
+        { text: "Every other guy sends flowers.\nI sent you a {h}ring{/h}.\nBecause I don't do things halfway.", speed: 30 },
+        { text: "I hope when you held it...\nyou felt my hands\naround yours.", speed: 35 },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch7');
+        el.innerHTML = dialogueSceneHTML('VII', 'The Ring');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
+
+    // --- CH8: THE STRUGGLE ---
+    scenes.push({
+      id: 'ch8', bg: 'darkroom', dialogues: [
+        { action: 'wait', duration: 3000 },
+        { action: 'addChar', char: { type: 'amaraa', x: GAME_W * 0.46, y: GAME_H * 0.72, scale: 2, frame: 0, speed: 0 } },
+        { text: "You don't know what happens\nwhen I put down my phone.", speed: 30 },
+        { text: "The {h}anxiety{/h} hits.\nMy chest tightens.\nI can't breathe.", speed: 28 },
+        { text: "I sit alone in my home\nin Ulaanbaatar.\nThe city is loud but I hear {h}nothing{/h}.", speed: 28 },
+        { text: "I wake up at 3am\nreaching for you.\nBut the bed is {h}empty{/h}.", speed: 30 },
+        { text: "I check my phone.\n{h}No messages.{/h}\nI don't even know where you are.", speed: 28 },
+        { text: "So I open my laptop.\nAnd I {g}work{/g}.", speed: 40 },
+        { text: "Through the pain.\nThrough the tears I'll never admit to.\nThrough the panic attacks.", speed: 25 },
+        { text: "Every line of code I write,\nevery prompt I craft...\nI do it thinking of {h}us{/h}.", speed: 30 },
+        { text: "Some days I can barely function.\nBut I {h}keep going{/h}.", speed: 35 },
+        { text: "Because giving up on my work\nwould mean giving up on\nmy chance to reach you.", speed: 30 },
+        { text: "You are in Korea.\nStruggling for your family.\nFor your {h}mother{/h}. For your {h}brother{/h}.", speed: 30 },
+        { text: "But God...\nI wish I was there\nwalking beside you.", speed: 35 },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch8');
+        el.innerHTML = dialogueSceneHTML('VIII', 'The Struggle');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
+
+    // --- CH8.5: WHAT YOU GAVE ME ---
+    scenes.push({
+      id: 'ch8b', bg: 'darkroom', dialogues: [
+        { action: 'wait', duration: 3000 },
+        { text: "But I need you to know something.", speed: 35 },
+        { text: "You always showed me love.\nMore than I {h}deserved{/h}.", speed: 30 },
+        { text: "Maagii... look at what\n{h}you{/h} gave me.", speed: 35 },
+        { text: "You gave me {g}Air Force 1s{/g}.\nThe exact ones I always wanted.", speed: 30 },
+        { action: 'showPhoto', photo: 'airforce1.jpg', caption: '— She always knew what I wanted. —', text: "You remembered.\nYou always remembered.", speed: 35 },
+        { action: 'hidePhoto' },
+        { text: "You gave me a {g}gaming mouse{/g}.\nBecause you know I'm a gamer\nand you wanted me to be {h}happy{/h}.", speed: 28 },
+        { action: 'showPhoto', photo: 'gaming_mouse.jpg', caption: '— She knows me better than I know myself. —', text: "You know me better\nthan I know myself.", speed: 35 },
+        { action: 'hidePhoto' },
+        { text: "You sent me {g}vitamins{/g}\nfrom Korea.\nBecause you worry about\nmy {h}health{/h}.", speed: 28 },
+        { action: 'showPhoto', photo: 'maagii_vitamins.jpg', caption: '— Even from across the ocean, she takes care of me. —', text: "Even from 2,714 km away,\nyou take care of me.", speed: 30 },
+        { action: 'hidePhoto' },
+        { text: "And at my {g}graduation{/g}...\nyou sent me {h}flowers{/h}.", speed: 35 },
+        { action: 'showPhoto', photo: 'graduation.jpg', caption: '— She made my graduation complete. —', text: "You couldn't be there.\nBut your flowers were.\nAnd I felt you {h}everywhere{/h}.", speed: 28 },
+        { action: 'hidePhoto' },
+        { text: "But more than any gift...", speed: 50 },
+        { text: "You gave me something\nno one else ever had.", speed: 35 },
+        { text: "You gave me your {h}trust{/h}.\nYour walls came down.\nFor {h}me{/h}.", speed: 30 },
+        { text: "You gave me your {h}pride{/h}.\nYour control.\nEverything you held so tightly.", speed: 28 },
+        { text: "You gave me {h}all of you{/h}.\nThings you never gave anyone.\nThings you'll never get back.", speed: 28 },
+        { text: "And I will {h}never{/h}\ntake that for granted.", speed: 40 },
+        { text: "That wasn't just love.\nThat was {h}everything{/h}.", speed: 35 },
+        { text: "So don't tell me\nwe don't show love\nthrough {h}actions{/h}.", speed: 35 },
+        { text: "We both do.\nWe just {h}struggle{/h}\nto see it sometimes.", speed: 35 },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch8b');
+        el.innerHTML = dialogueSceneHTML('IX', 'What You Gave Me');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
+
+    // --- INTERACTIVE WALK ---
+    scenes.push({
+      id: 'walkScene', bg: 'walk', dialogues: [
+        { action: 'wait', duration: 1500 },
+        { action: 'walk' },
+        { action: 'changeBg', bg: 'hearts' },
+        { action: 'clearChars' },
+      ], onEnter: async () => {
+        const el = createSceneEl('walkScene');
+        el.innerHTML = `
     <div class="walk-instructions">
       Use arrow keys or tap screen<br>
       to walk to Maagii →
     </div>
     <div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">tap ▼</div></div></div>
   `;
-  walkX=0;walkReached=false;walkActive=false;
-  charAnimations=[];
-  el.classList.add('active');
-  await sleep(500);
-}});
+        walkX = 0; walkReached = false; walkActive = false;
+        charAnimations = [];
+        el.classList.add('active');
+        await sleep(500);
+      }
+    });
 
-// --- CH10: WHAT I NEVER SAID ---
-scenes.push({id:'ch9',bg:'stars',dialogues:[
-  {action:'wait',duration:2500},
-  {speaker:'AMARTUVSHIN',text:"Maagii...",speed:70},
-  {speaker:'AMARTUVSHIN',text:"Every morning,\nmy first thought is {h}you{/h}.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"Every night,\nI wish you were {h}here{/h}.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"Your warmth.\nYour scent.\nThe way you fit perfectly next to me.",speed:30},
-  {speaker:'AMARTUVSHIN',text:"I {h}can't{/h} see my life\nwithout you.",speed:40},
-  {speaker:'AMARTUVSHIN',text:"You say I only give you {h}words{/h}.\nThat I never show it.\nThat I'm lying.",speed:28},
-  {speaker:'AMARTUVSHIN',text:"So let me show you\nmy {h}actions{/h}.",speed:40},
-  {speaker:'AMARTUVSHIN',text:"I drove {g}500 kilometers{/g}\nto take you to my mother.\nThat wasn't words. That was real.",speed:28},
-  {speaker:'AMARTUVSHIN',text:"I sent you a {h}ring{/h}\nacross the ocean by cargo.\nThat wasn't a lie.\nThat was a promise.",speed:28},
-  {speaker:'AMARTUVSHIN',text:"I applied for a visa\nto come to Korea.\nTo be with you.\nThat wasn't talk. That was {h}trying{/h}.",speed:28},
-  {speaker:'AMARTUVSHIN',text:"I have {h}anxiety attacks{/h}\nat 3am because of you.\nI can't breathe.\nI can't sleep.",speed:28},
-  {speaker:'AMARTUVSHIN',text:"Would a man who doesn't love you\nlose sleep over you?",speed:35},
-  {speaker:'AMARTUVSHIN',text:"Would a man who's lying\nsend his ring across an ocean?",speed:35},
-  {speaker:'AMARTUVSHIN',text:"Would a liar drive 500km\nto introduce you to his {h}mother{/h}?",speed:30},
-  {speaker:'AMARTUVSHIN',text:"I know I'm bad at showing it\nthe way you need.\nI know I look cold.",speed:30},
-  {speaker:'AMARTUVSHIN',text:"But Maagii...\neverything I did\nwas for {h}you{/h}.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"I {h}meant{/h} it.\nEvery word. Every action.\nI still mean it.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"I love every version of you.\nThe little girl you were.\nThe woman you became.",speed:30},
-  {action:'showPhoto',photo:'maagii_young.jpg',caption:'— Even then, you were everything. —',text:"Even then, you were\n{h}everything{/h}.",speed:40},
-  {action:'hidePhoto'},
-  {action:'showPhoto',photo:'maagii_facemask.jpg',caption:'— This face. My whole world. —',text:"This face.\nWith or without a mask.\nMy whole {h}world{/h}.",speed:35},
-  {action:'hidePhoto'},
-  {action:'showPhoto',photo:'maagii_paris.jpg',caption:'— Beautiful. Everywhere she goes. —',text:"Look at you.\n{h}Beautiful{/h}.\nEverywhere you go,\nyou light up the world.",speed:28},
-  {action:'hidePhoto'},
-],onEnter:async()=>{
-  const el=createSceneEl('ch9');
-  el.innerHTML=dialogueSceneHTML('X','What I Never Said');
-  charAnimations=[];
-  await showChapterTitle(el);
-}});
+    // --- CH10: WHAT I NEVER SAID ---
+    scenes.push({
+      id: 'ch9', bg: 'stars', dialogues: [
+        { action: 'wait', duration: 2500 },
+        { speaker: 'AMARTUVSHIN', text: "Maagii...", speed: 70 },
+        { speaker: 'AMARTUVSHIN', text: "Every morning,\nmy first thought is {h}you{/h}.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "Every night,\nI wish you were {h}here{/h}.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "Your warmth.\nYour scent.\nThe way you fit perfectly next to me.", speed: 30 },
+        { speaker: 'AMARTUVSHIN', text: "I {h}can't{/h} see my life\nwithout you.", speed: 40 },
+        { speaker: 'AMARTUVSHIN', text: "You say I only give you {h}words{/h}.\nThat I never show it.\nThat I'm lying.", speed: 28 },
+        { speaker: 'AMARTUVSHIN', text: "So let me show you\nmy {h}actions{/h}.", speed: 40 },
+        { speaker: 'AMARTUVSHIN', text: "I drove {g}500 kilometers{/g}\nto take you to my mother.\nThat wasn't words. That was real.", speed: 28 },
+        { speaker: 'AMARTUVSHIN', text: "I sent you a {h}ring{/h}\nacross the ocean by cargo.\nThat wasn't a lie.\nThat was a promise.", speed: 28 },
+        { speaker: 'AMARTUVSHIN', text: "I applied for a visa\nto come to Korea.\nTo be with you.\nThat wasn't talk. That was {h}trying{/h}.", speed: 28 },
+        { speaker: 'AMARTUVSHIN', text: "I have {h}anxiety attacks{/h}\nat 3am because of you.\nI can't breathe.\nI can't sleep.", speed: 28 },
+        { speaker: 'AMARTUVSHIN', text: "Would a man who doesn't love you\nlose sleep over you?", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "Would a man who's lying\nsend his ring across an ocean?", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "Would a liar drive 500km\nto introduce you to his {h}mother{/h}?", speed: 30 },
+        { speaker: 'AMARTUVSHIN', text: "I know I'm bad at showing it\nthe way you need.\nI know I look cold.", speed: 30 },
+        { speaker: 'AMARTUVSHIN', text: "But Maagii...\neverything I did\nwas for {h}you{/h}.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "I {h}meant{/h} it.\nEvery word. Every action.\nI still mean it.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "I love every version of you.\nThe little girl you were.\nThe woman you became.", speed: 30 },
+        { action: 'showPhoto', photo: 'maagii_young.jpg', caption: '— Even then, you were everything. —', text: "Even then, you were\n{h}everything{/h}.", speed: 40 },
+        { action: 'hidePhoto' },
+        { action: 'showPhoto', photo: 'maagii_facemask.jpg', caption: '— This face. My whole world. —', text: "This face.\nWith or without a mask.\nMy whole {h}world{/h}.", speed: 35 },
+        { action: 'hidePhoto' },
+        { action: 'showPhoto', photo: 'maagii_paris.jpg', caption: '— Beautiful. Everywhere she goes. —', text: "Look at you.\n{h}Beautiful{/h}.\nEverywhere you go,\nyou light up the world.", speed: 28 },
+        { action: 'hidePhoto' },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch9');
+        el.innerHTML = dialogueSceneHTML('X', 'What I Never Said');
+        charAnimations = [];
+        await showChapterTitle(el);
+      }
+    });
 
-// --- CH11: THE PROMISE ---
-scenes.push({id:'ch10',bg:'hearts',dialogues:[
-  {action:'wait',duration:2000},
-  {speaker:'AMARTUVSHIN',text:"No denied visa\ncan stop me.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"No distance\ncan erase what we have.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"I will find a way\n{h}back to you{/h}.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"And when I do...",speed:50},
-  {speaker:'AMARTUVSHIN',text:"I'll drive another {g}500km{/g}.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"So my mother\ncan see you again.",speed:35},
-  {speaker:'AMARTUVSHIN',text:"As my {h}wife{/h}.",speed:60},
-],onEnter:async()=>{
-  const el=createSceneEl('ch10');
-  el.innerHTML=`<div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">tap ▼</div></div></div>`;
-  charAnimations=[
-    {type:'amaraa',x:GAME_W*0.42,y:GAME_H*0.55,scale:2,frame:0,speed:0},
-    {type:'maagii',x:GAME_W*0.58,y:GAME_H*0.55,scale:2,frame:0,speed:0,flip:true}
-  ];
-}});
+    // --- CH11: THE PROMISE ---
+    scenes.push({
+      id: 'ch10', bg: 'hearts', dialogues: [
+        { action: 'wait', duration: 2000 },
+        { speaker: 'AMARTUVSHIN', text: "No denied visa\ncan stop me.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "No distance\ncan erase what we have.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "I will find a way\n{h}back to you{/h}.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "And when I do...", speed: 50 },
+        { speaker: 'AMARTUVSHIN', text: "I'll drive another {g}500km{/g}.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "So my mother\ncan see you again.", speed: 35 },
+        { speaker: 'AMARTUVSHIN', text: "As my {h}wife{/h}.", speed: 60 },
+      ], onEnter: async () => {
+        const el = createSceneEl('ch10');
+        el.innerHTML = `<div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">tap ▼</div></div></div>`;
+        charAnimations = [
+          { type: 'amaraa', x: GAME_W * 0.42, y: GAME_H * 0.55, scale: 2, frame: 0, speed: 0 },
+          { type: 'maagii', x: GAME_W * 0.58, y: GAME_H * 0.55, scale: 2, frame: 0, speed: 0, flip: true }
+        ];
+      }
+    });
 
-// --- FINALE ---
-scenes.push({id:'final',bg:'hearts',dialogues:[],onEnter:async()=>{
-  charAnimations=[];
-  const el=createSceneEl('final');
-  el.innerHTML=`<div class="final-message">
+    // --- FINALE ---
+    scenes.push({
+      id: 'final', bg: 'hearts', dialogues: [], onEnter: async () => {
+        charAnimations = [];
+        const el = createSceneEl('final');
+        el.innerHTML = `<div class="final-message">
     <h2 style="opacity:0">I love you, Maagii.</h2>
     <p>Always have. Always will.</p>
     <p>I look cold on the outside.</p>
@@ -1903,32 +2427,34 @@ scenes.push({id:'final',bg:'hearts',dialogues:[],onEnter:async()=>{
       for how much I love you.
     </p>
   </div>`;
-  el.classList.add('active');
-  spawnHearts(30);
-  const h2=el.querySelector('h2');
-  await sleep(500);h2.style.opacity='1';h2.style.transition='opacity 1.5s ease';
-  const ps=el.querySelectorAll('p');
-  for(let i=0;i<ps.length;i++){await sleep(1800);ps[i].style.opacity='1';ps[i].style.animation='slideUp 1s ease forwards';}
-  const imgs=el.querySelectorAll('.gallery img');
-  for(let i=0;i<imgs.length;i++){await sleep(600);imgs[i].classList.add('visible');}
-  setInterval(()=>spawnHearts(5),4000);
-}});
+        el.classList.add('active');
+        spawnHearts(30);
+        const h2 = el.querySelector('h2');
+        await sleep(500); h2.style.opacity = '1'; h2.style.transition = 'opacity 1.5s ease';
+        const ps = el.querySelectorAll('p');
+        for (let i = 0; i < ps.length; i++) { await sleep(1800); ps[i].style.opacity = '1'; ps[i].style.animation = 'slideUp 1s ease forwards'; }
+        const imgs = el.querySelectorAll('.gallery img');
+        for (let i = 0; i < imgs.length; i++) { await sleep(600); imgs[i].classList.add('visible'); }
+        setInterval(() => spawnHearts(5), 4000);
+      }
+    });
 
-// ---- CLICK HANDLER ----
-document.addEventListener('click',e=>{
-  if(e.target.id==='musicBtn'){toggleMusic();return;}
-  if(walkActive)return; // don't advance during walk
-  if(currentScene>=2&&canAdvance) advanceDlg();
-});
-document.addEventListener('keydown',e=>{
-  if(e.code==='Space'||e.code==='Enter'){
-    e.preventDefault();
-    if(!walkActive&&currentScene>=2&&canAdvance) advanceDlg();
-  }
-});
+    // ---- CLICK HANDLER ----
+    document.addEventListener('click', e => {
+      if (e.target.id === 'musicBtn') { toggleMusic(); return; }
+      if (walkActive) return; // don't advance during walk
+      if (currentScene >= 2 && canAdvance) advanceDlg();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        if (!walkActive && currentScene >= 2 && canAdvance) advanceDlg();
+      }
+    });
 
-// ---- START ----
-showScene(0);
-</script>
+    // ---- START ----
+    showScene(0);
+  </script>
 </body>
+
 </html>
