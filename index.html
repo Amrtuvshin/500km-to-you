@@ -14,6 +14,10 @@
 @keyframes glowPulse{0%,100%{box-shadow:0 0 20px rgba(229,49,112,.3)}50%{box-shadow:0 0 40px rgba(229,49,112,.7),0 0 60px rgba(229,49,112,.3)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.15)}30%{transform:scale(1)}45%{transform:scale(1.1)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes photoReveal{0%{clip-path:inset(50% 50% 50% 50%);opacity:0;filter:brightness(2)}30%{clip-path:inset(20% 20% 20% 20%);opacity:.7;filter:brightness(1.5)}100%{clip-path:inset(0% 0% 0% 0%);opacity:1;filter:brightness(1)}}
+@keyframes photoGlow{0%{box-shadow:0 0 20px rgba(229,49,112,.3),0 0 40px rgba(229,49,112,.1)}50%{box-shadow:0 0 30px rgba(229,49,112,.6),0 0 60px rgba(229,49,112,.3),0 0 80px rgba(255,150,100,.1)}100%{box-shadow:0 0 20px rgba(229,49,112,.3),0 0 40px rgba(229,49,112,.1)}}
+@keyframes heartsFloat{0%{opacity:0;transform:translateY(0) scale(0)}20%{opacity:1;transform:translateY(-10px) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(.5)}}
 
 body{
   background:#0a0a12;color:#f0e6d3;
@@ -41,14 +45,18 @@ canvas{position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pix
 .dialogue-text .highlight{color:#e53170}
 .dialogue-text .gold{color:#f4a261}
 .dialogue-text .green{color:#00ff41}
-.advance-indicator{position:absolute;bottom:8px;right:12px;font-size:8px;color:#e53170;animation:blink 1s ease-in-out infinite}
+.advance-indicator{position:absolute;bottom:8px;right:12px;font-size:9px;color:#e53170;animation:bounce 1s ease-in-out infinite;text-shadow:0 0 8px rgba(229,49,112,.5);letter-spacing:2px}
 .speaker-name{font-size:10px;color:#f4a261;margin-bottom:10px;letter-spacing:2px}
 
-.photo-container{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);z-index:15;opacity:0;transition:opacity 1.5s ease}
+.photo-container{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);z-index:15;opacity:0;transition:opacity .3s ease}
 .photo-container.visible{opacity:1}
-.photo-frame{border:4px solid #e53170;padding:6px;background:#0a0a12;box-shadow:0 0 30px rgba(229,49,112,.4);animation:glowPulse 3s ease-in-out infinite;max-width:min(75vw,380px);max-height:50vh}
+.photo-container.visible .photo-frame{animation:photoReveal 1.2s cubic-bezier(.25,.46,.45,.94) forwards,photoGlow 3s ease-in-out 1.2s infinite}
+.photo-container.visible .photo-hearts{display:block}
+.photo-frame{border:4px solid #e53170;padding:6px;background:#0a0a12;box-shadow:0 0 30px rgba(229,49,112,.4);max-width:min(75vw,380px);max-height:50vh;position:relative}
 .photo-frame img{display:block;width:100%;height:100%;object-fit:contain;max-height:calc(50vh - 20px);image-rendering:auto}
 .photo-caption{font-size:clamp(7px,1.5vw,10px);color:#f4a261;text-align:center;margin-top:12px;line-height:1.8}
+.photo-hearts{display:none;position:absolute;top:-10px;left:50%;transform:translateX(-50%);pointer-events:none}
+.photo-heart{position:absolute;color:#e53170;font-size:14px;animation:heartsFloat 2s ease-out forwards}
 
 .visa-stamp{font-size:clamp(24px,6vw,48px);color:#ff0000;border:4px solid #ff0000;padding:10px 30px;transform:rotate(-15deg);opacity:0;letter-spacing:4px;text-shadow:0 0 20px rgba(255,0,0,.5);position:absolute;top:40%;left:50%;margin-left:-150px;z-index:25}
 .km-counter{font-size:clamp(28px,7vw,56px);color:#f4a261;text-shadow:2px 2px 0 #8b5a2a;position:absolute;top:25%;left:50%;transform:translateX(-50%);z-index:15;opacity:0;transition:opacity .5s ease}
@@ -143,7 +151,7 @@ function drawSprite(cx, cy, scale, rows, palette, flip) {
   }
 }
 
-// ---- AMARTUVSHIN SPRITE (Black puffer jacket, beige hoodie, dark hair) ----
+// ---- AMARTUVSHIN SPRITE (Puffer jacket, beige hoodie, dark hair) ----
 const A_PAL = {
   '.':null,
   'o':'#0e0e1a',   // outline
@@ -152,15 +160,15 @@ const A_PAL = {
   'S':'#d4a574',   // skin
   's':'#ba8a58',   // skin shadow
   'L':'#e8c090',   // skin light
-  'W':'#e8e0d8',   // eye white
+  'W':'#f0eae4',   // eye white (brighter)
   'e':'#0e0e1a',   // eye pupil
   'm':'#b07050',   // mouth
   'C':'#c8ac86',   // hoodie
   'c':'#a89068',   // hoodie shadow
   'B':'#d8c0a0',   // hoodie bright
-  'J':'#2c2c40',   // jacket
-  'j':'#1c1c2c',   // jacket dark
-  'K':'#3c3c58',   // jacket light/ridge
+  'J':'#505070',   // jacket (BRIGHT purple-gray)
+  'j':'#3c3c58',   // jacket shadow
+  'K':'#686890',   // jacket highlight
   'P':'#1e1e2c',   // pants
   'p':'#28283a',   // pants light
   'G':'#24243a',   // shoe
@@ -176,20 +184,20 @@ const A_BODY = [
   '..oHHHHHHHHo..',
   '..oHsSSSSLHo..',
   '..oSsSSSSLSo..',
-  '..oSWeSSWeSSo.',
+  '..oSWeSSeWSSo.',
   '..oSSSSSSSSo..',
   '...oSSmSmSo...',
   '....oLSSLo....',
   '.....oSSo.....',
   '....oBCCBo....',
   '...oCCBBCCo...',
-  '..oJJcCBCcJJo.',
-  '.oJJJcCBCcJJJo',
-  '.ojKJcCBCcJKjo',
-  'FoJJJcCBCcJJJo',
-  'FojKJJJJJJJKjo',
-  '.oJJJJJJJJJJJo',
-  '..ojKJJJJJKjo.',
+  '..oKJcCBCcJKo.',
+  '.oKJJcCBCcJJKo',
+  '.oJKJcCBCcJKjo',
+  'FoKJJcCBCcJJKo',
+  'FoJKJJJJJJJKJo',
+  '.oKJJJJJJJJJKo',
+  '..oJKJJJJJKJo.',
   '..oJJJJJJJJJo.',
 ];
 const A_LEGS_STAND = [
@@ -209,58 +217,60 @@ function drawAmaraa(cx, cy, scale, frame, flip) {
   drawSprite(cx, cy, scale, rows, A_PAL, flip);
 }
 
-// ---- MAAGII SPRITE (Brown hair long, duffle coat, pretty smile) ----
+// ---- MAAGII SPRITE (Jean shorts, white shirt, long brown hair, pretty!) ----
 const M_PAL = {
   '.':null,
   'o':'#0e0e1a',   // outline
-  'H':'#7a5832',   // hair dark
-  'h':'#9c7a54',   // hair light
-  'R':'#6a4822',   // hair darker
+  'H':'#4a3020',   // hair dark brown
+  'h':'#6a4c34',   // hair mid
+  'R':'#3a2010',   // hair darkest
+  'r':'#8a6848',   // hair highlight shine
   'S':'#eaC8a4',   // skin
   's':'#d4ae88',   // skin shadow
   'L':'#f4d8b8',   // skin highlight
-  'B':'#eca0a0',   // blush
-  'W':'#f0e8e0',   // eye white
-  'e':'#1a1008',   // eye pupil
-  'm':'#d4a080',   // mouth/smile
-  'C':'#5c3a1e',   // coat
-  'c':'#4a2c12',   // coat dark
-  'K':'#6e4e30',   // coat light
-  'I':'#f0e6d3',   // inner white
-  'T':'#c4a882',   // toggle
-  'P':'#2a2a3c',   // pants
-  'p':'#343448',   // pants light
-  'G':'#4a3020',   // shoe
-  'g':'#382418',   // shoe dark
-  'D':'#eaC8a4',   // hand skin
+  'B':'#f0a0a0',   // blush (rosy pink)
+  'W':'#f0eae4',   // eye white
+  'e':'#2a1810',   // eye pupil (soft brown)
+  'm':'#e0a090',   // mouth (pink lips!)
+  'T':'#f0eae0',   // white shirt
+  't':'#dcd0c0',   // shirt shadow
+  'I':'#f8f2ea',   // shirt bright
+  'J':'#4466aa',   // jean shorts (blue!)
+  'j':'#3a5890',   // jean shadow
+  'K':'#5578bb',   // jean highlight
+  'P':'#eaC8a4',   // bare legs (skin - she's in shorts!)
+  'p':'#d4ae88',   // legs shadow
+  'G':'#f0eae0',   // white sneakers
+  'g':'#dcd0c0',   // sneaker shadow
+  'D':'#eaC8a4',   // hand (skin)
 };
 
 const M_BODY = [
   '....ooooo.....',
-  '...oHhHhHo....',
+  '...oHhrHhHo...',
   '..oHHhHhHHHo..',
   '..oHHHHHHHHo..',
   '..oHHHHHHHHo..',
   '..oHsSSSLsHo..',
   '..oBSSSSSsBo..',
-  '..oSWeSSWeSo..',
-  '..oSSSSSSSso..',
-  '...oSLmSmLo...',
-  '..oHoLSSLsHo..',
+  '..oSWeSSeWSo..',
+  '..oSSSsSsSso..',
+  '...oSLmmLSo...',
+  '..oHoLSSLoHo..',
   '..oH.oSSo.Ho..',
-  '..oHoCKKCoHo..',
-  '.oHoKCIICKoHo.',
-  '.oHoCCIICCoHo.',
-  'DoHocCTTCcoHoD',
-  'DoHoCCIICCoHo.',
-  '.oHocCCCCcoHo.',
-  '.oRoCKCCKCoRo.',
-  '..oRoKCCKoRo..',
-  '...oooCCooo...',
+  '..oHoTIIToHo..',
+  '.oHotTIITtoHo.',
+  '.oHotTIITtoHo.',
+  'DoHotTTTTtoHoD',
+  '.oHotTTTTtoHo.',
+  '.oRoJJKKJJoRo.',
+  '..oRojJKJjoRo.',
+  '..oRoJJKJoRo..',
+  '...oooPPooo...',
 ];
 const M_LEGS_STAND = [
-  '....opPPpo....',
   '....oPP.PPo...',
+  '....oPp.pPo...',
   '....oGg.gGo...',
 ];
 const M_LEGS_WALK = [
@@ -341,6 +351,26 @@ function drawNightCity(t) {
     ctx.fillStyle=lg; ctx.fillRect(lx-20,h*.5,40,h*.4);
   }
 
+  // Neon signs on buildings
+  ctx.fillStyle='rgba(229,49,112,0.15)'; ctx.fillRect(w*.15,h*.42,8,3);
+  ctx.fillStyle='rgba(100,200,255,0.12)'; ctx.fillRect(w*.62,h*.44,6,2);
+  ctx.fillStyle='rgba(255,200,50,0.1)'; ctx.fillRect(w*.38,h*.48,5,2);
+
+  // Pixel art trees/bushes on sidewalk
+  for(let i=0;i<3;i++){
+    const tx=w*(.08+i*.35);
+    // Tree trunk
+    ctx.fillStyle='#1a1810'; ctx.fillRect(tx,h*.69,1,4);
+    // Tree canopy (round pixel bush)
+    ctx.fillStyle='#1a2a12'; ctx.fillRect(tx-2,h*.66,5,3);
+    ctx.fillStyle='#223316'; ctx.fillRect(tx-1,h*.65,3,1);
+    ctx.fillStyle='#2a3a1a'; ctx.fillRect(tx,h*.66,1,1);
+  }
+
+  // Bench
+  ctx.fillStyle='#2a2015'; ctx.fillRect(w*.78,h*.71,6,1);
+  ctx.fillStyle='#1a1510'; ctx.fillRect(w*.79,h*.72,1,2); ctx.fillRect(w*.83,h*.72,1,2);
+
   // Wet ground reflections
   ctx.globalAlpha=0.03;
   ctx.scale(1,-1); ctx.translate(0,-h*1.52);
@@ -390,6 +420,21 @@ function drawFountain(t) {
   const fg=ctx.createRadialGradient(fx,fy-4,1,fx,fy-4,24);
   fg.addColorStop(0,'rgba(100,160,230,0.06)'); fg.addColorStop(1,'transparent');
   ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(fx,fy-4,24,0,Math.PI*2); ctx.fill();
+
+  // Decorative flower pots beside fountain
+  for(let side=-1;side<=1;side+=2){
+    const px=fx+side*24;
+    ctx.fillStyle='#3a2a1a'; ctx.fillRect(px-1,fy+1,3,2);
+    ctx.fillStyle='#2a5a1a'; ctx.fillRect(px-1,fy,3,1);
+    ctx.fillStyle='#e05080'; ctx.fillRect(px,fy-1,1,1);
+  }
+
+  // Ground path tiles
+  ctx.fillStyle='rgba(30,28,35,0.4)';
+  for(let i=0;i<8;i++){
+    ctx.fillRect(fx-20+i*5,fy+5,4,1);
+    ctx.fillRect(fx-18+i*5,fy+7,3,1);
+  }
 }
 
 function drawPub(t) {
@@ -446,6 +491,20 @@ function drawPub(t) {
     ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx+3,gy+1,1,2);
   }
 
+  // Bottles behind bar
+  for(let i=0;i<6;i++){
+    const bx=w*.1+i*w*.14;
+    ctx.fillStyle=['#2a4a2a','#4a2a2a','#2a2a4a','#4a4a2a','#3a3a3a','#4a3a2a'][i];
+    ctx.fillRect(bx,h*.48,2,5);
+    ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(bx,h*.48,1,2);
+  }
+
+  // Wall decorations (framed pictures)
+  ctx.fillStyle='#2a2018'; ctx.fillRect(w*.2,h*.2,6,5);
+  ctx.fillStyle='#3a3028'; ctx.fillRect(w*.21,h*.21,4,3);
+  ctx.fillStyle='#2a2018'; ctx.fillRect(w*.7,h*.22,5,4);
+  ctx.fillStyle='#3a3028'; ctx.fillRect(w*.71,h*.23,3,2);
+
   ctx.fillStyle='#0e0a06'; ctx.fillRect(0,h*.85,w,h*.15);
 }
 
@@ -478,6 +537,19 @@ function drawSteppe(t) {
   ctx.beginPath(); ctx.moveTo(0,gy);
   for(let x=0;x<=w;x+=2) ctx.lineTo(x,gy-4-Math.sin(x*.015)*6-Math.sin(x*.035+2)*3);
   ctx.lineTo(w,gy); ctx.fill();
+
+  // Distant ger (Mongolian yurt) on the steppe
+  const gx=w*.18, gy2=gy-1;
+  ctx.fillStyle='#1a1a2a'; ctx.fillRect(gx-3,gy2-2,6,2); // walls
+  ctx.fillStyle='#14142a'; // roof
+  ctx.beginPath(); ctx.moveTo(gx-4,gy2-2); ctx.lineTo(gx,gy2-5); ctx.lineTo(gx+4,gy2-2); ctx.fill();
+  ctx.fillStyle='rgba(255,180,80,0.08)'; ctx.fillRect(gx,gy2-1,1,1); // tiny door light
+
+  // Another distant ger
+  const gx2=w*.75;
+  ctx.fillStyle='#16162a'; ctx.fillRect(gx2-2,gy2-1,4,1);
+  ctx.fillStyle='#12122a';
+  ctx.beginPath(); ctx.moveTo(gx2-3,gy2-1); ctx.lineTo(gx2,gy2-3); ctx.lineTo(gx2+3,gy2-1); ctx.fill();
 
   // Ground
   const gg=ctx.createLinearGradient(0,gy,0,h);
@@ -924,9 +996,21 @@ function advanceDlg() {
 
 // ---- PHOTO SYSTEM ----
 let photoCont=null;
-function createPhotoSys(){photoCont=document.createElement('div');photoCont.className='photo-container';photoCont.innerHTML='<div class="photo-frame"><img id="photoImg" src="" alt=""></div><div class="photo-caption" id="photoCaption"></div>';game.appendChild(photoCont);}
+function createPhotoSys(){photoCont=document.createElement('div');photoCont.className='photo-container';photoCont.innerHTML='<div class="photo-frame"><img id="photoImg" src="" alt=""><div class="photo-hearts" id="photoHearts"></div></div><div class="photo-caption" id="photoCaption"></div>';game.appendChild(photoCont);}
 createPhotoSys();
-function showPhoto(s,c){$('#photoImg').src='photos/'+s;$('#photoCaption').textContent=c||'';photoCont.classList.add('visible');}
+function showPhoto(s,c){
+  $('#photoImg').src='photos/'+s;$('#photoCaption').textContent=c||'';
+  // Create floating hearts around the photo
+  const hc=$('#photoHearts');hc.innerHTML='';
+  for(let i=0;i<8;i++){
+    const h=document.createElement('span');h.className='photo-heart';h.textContent='♥';
+    h.style.left=(Math.random()*200-100)+'px';
+    h.style.animationDelay=(0.2+Math.random()*1.5)+'s';
+    h.style.fontSize=(10+Math.random()*12)+'px';
+    hc.appendChild(h);
+  }
+  photoCont.classList.add('visible');
+}
 function hidePhoto(){photoCont.classList.remove('visible');}
 
 // ---- VISA STAMP ----
@@ -948,7 +1032,7 @@ function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 function dialogueSceneHTML(chNum, chTitle) {
   return `
     ${chNum ? `<div class="chapter-title"><div class="chapter-num">CHAPTER ${chNum}</div><h2>${chTitle}</h2></div>` : ''}
-    <div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">▼</div></div></div>
+    <div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">tap ▼</div></div></div>
   `;
 }
 
@@ -1177,7 +1261,7 @@ scenes.push({id:'walkScene',bg:'walk',dialogues:[
       Use arrow keys or tap screen<br>
       to walk to Maagii →
     </div>
-    <div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">▼</div></div></div>
+    <div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">tap ▼</div></div></div>
   `;
   walkX=0;walkReached=false;walkActive=false;
   charAnimations=[];
@@ -1224,7 +1308,7 @@ scenes.push({id:'ch10',bg:'hearts',dialogues:[
   {speaker:'AMARTUVSHIN',text:"As my {h}wife{/h}.",speed:60},
 ],onEnter:async()=>{
   const el=createSceneEl('ch10');
-  el.innerHTML=`<div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">▼</div></div></div>`;
+  el.innerHTML=`<div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">tap ▼</div></div></div>`;
   charAnimations=[
     {type:'amaraa',x:GAME_W*0.42,y:GAME_H*0.55,scale:2,frame:0,speed:0},
     {type:'maagii',x:GAME_W*0.58,y:GAME_H*0.55,scale:2,frame:0,speed:0,flip:true}
