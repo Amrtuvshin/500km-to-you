@@ -22,7 +22,7 @@ body{
   cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
 }
 #game{width:100vw;height:100vh;position:relative;overflow:hidden}
-canvas{position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;-webkit-image-rendering:pixelated}
 .scene{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 1.2s ease;pointer-events:none;z-index:10}
 .scene.active{opacity:1;pointer-events:all}
 
@@ -91,8 +91,9 @@ const game = $('#game');
 const canvas = $('#bgCanvas');
 const ctx = canvas.getContext('2d');
 
-// ---- RESIZE ----
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+// ---- RESIZE (Low-res for authentic pixel art) ----
+const GAME_W = 384, GAME_H = 216;
+function resize() { canvas.width = GAME_W; canvas.height = GAME_H; }
 window.addEventListener('resize', resize); resize();
 
 // ---- AUDIO ----
@@ -276,54 +277,48 @@ function drawMaagii(cx, cy, scale, frame, flip) {
 
 // ---- ENVIRONMENT DRAWING ----
 let stars = [];
-function initStars(n=150) { stars = []; for (let i=0;i<n;i++) stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,s:Math.random()*2+.5,sp:Math.random()*.02+.005,o:Math.random()*Math.PI*2,b:Math.random()*.5+.5}); }
+function initStars(n=50) { stars = []; for (let i=0;i<n;i++) stars.push({x:Math.random()*GAME_W,y:Math.random()*GAME_H,s:1,sp:Math.random()*.02+.005,o:Math.random()*Math.PI*2,b:Math.random()*.5+.5}); }
 initStars();
-function drawStars(t) { for (const s of stars) { const a = s.b*(.5+.5*Math.sin(t*s.sp+s.o)); ctx.fillStyle=`rgba(240,230,211,${a})`; ctx.fillRect(s.x|0,s.y|0,Math.ceil(s.s),Math.ceil(s.s)); } }
+function drawStars(t) { for (const s of stars) { const a = s.b*(.5+.5*Math.sin(t*s.sp+s.o)); ctx.fillStyle=`rgba(240,230,211,${a})`; ctx.fillRect(s.x|0,s.y|0,1,1); } }
 
 // ---- 32-BIT SMOOTH ENVIRONMENTS ----
 
 function drawNightCity(t) {
-  const w=canvas.width, h=canvas.height;
-  // Gradient sky
+  const w=GAME_W, h=GAME_H;
   const sky=ctx.createLinearGradient(0,0,0,h*.7);
   sky.addColorStop(0,'#05051a'); sky.addColorStop(0.4,'#0a0a2a'); sky.addColorStop(0.8,'#12122e'); sky.addColorStop(1,'#1a1535');
   ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
   drawStars(t);
 
-  // Distant buildings (far layer, blueish)
+  // Distant buildings
   const far=[.18,.32,.42,.28,.5,.35,.4,.3,.48,.22,.38,.44,.25,.36,.45,.33,.5,.27];
   for(let i=0;i<far.length;i++){
     const bx=i*(w/far.length),bw=w/far.length+1,bh=h*far[i]*.35;
     const bg=ctx.createLinearGradient(bx,h*.55-bh,bx,h*.55);
     bg.addColorStop(0,'#10102a'); bg.addColorStop(1,'#0c0c20');
     ctx.fillStyle=bg; ctx.fillRect(bx,h*.55-bh,bw,bh+h*.45);
-    // Dim windows
-    for(let wy=h*.55-bh+15;wy<h*.53;wy+=14){
-      for(let wx=bx+6;wx<bx+bw-6;wx+=10){
-        const lit=Math.sin(i*3.7+wx*.1+wy*.1)>.3;
+    for(let wy=h*.55-bh+3;wy<h*.53;wy+=3){
+      for(let wx=bx+1;wx<bx+bw-1;wx+=2){
+        const lit=Math.sin(i*3.7+wx*.5+wy*.5)>.3;
         ctx.fillStyle=lit?'rgba(255,200,100,0.12)':'rgba(30,30,60,0.3)';
-        ctx.fillRect(wx,wy,5,6);
+        ctx.fillRect(wx,wy,1,1);
       }
     }
   }
 
-  // Near buildings (foreground, darker)
+  // Near buildings
   const near=[.3,.55,.45,.6,.35,.52,.65,.4,.58,.48,.55,.38];
   for(let i=0;i<near.length;i++){
     const bx=i*(w/near.length),bw=w/near.length+1,bh=h*near[i]*.3;
     const bg=ctx.createLinearGradient(bx,h*.65-bh,bx,h*.65);
     bg.addColorStop(0,'#0a0a18'); bg.addColorStop(1,'#080814');
     ctx.fillStyle=bg; ctx.fillRect(bx,h*.65-bh,bw,bh+h*.35);
-    // Brighter windows
-    for(let wy=h*.65-bh+12;wy<h*.63;wy+=12){
-      for(let wx=bx+5;wx<bx+bw-5;wx+=9){
-        const lit=Math.sin(i*5.3+wx*.13+wy*.07)>.2;
+    for(let wy=h*.65-bh+3;wy<h*.63;wy+=3){
+      for(let wx=bx+1;wx<bx+bw-1;wx+=2){
+        const lit=Math.sin(i*5.3+wx*.6+wy*.3)>.2;
         if(lit){
           const wc=Math.random()>.5?'rgba(255,180,80,0.25)':'rgba(200,220,255,0.15)';
-          ctx.fillStyle=wc; ctx.fillRect(wx,wy,4,5);
-          // Window glow
-          ctx.fillStyle=wc.replace(/[\d.]+\)$/,'0.03)');
-          ctx.fillRect(wx-2,wy-2,8,9);
+          ctx.fillStyle=wc; ctx.fillRect(wx,wy,1,1);
         }
       }
     }
@@ -333,22 +328,17 @@ function drawNightCity(t) {
   const gnd=ctx.createLinearGradient(0,h*.72,0,h);
   gnd.addColorStop(0,'#0c0c14'); gnd.addColorStop(.3,'#0a0a10'); gnd.addColorStop(1,'#060608');
   ctx.fillStyle=gnd; ctx.fillRect(0,h*.72,w,h*.28);
-
-  // Street
   ctx.fillStyle='#0e0e14'; ctx.fillRect(0,h*.76,w,h*.14);
-  // Sidewalk edge
-  ctx.fillStyle='#1a1a22'; ctx.fillRect(0,h*.755,w,3);
+  ctx.fillStyle='#1a1a22'; ctx.fillRect(0,h*.755,w,1);
 
   // Street lights
   for(let i=0;i<4;i++){
     const lx=w*(.15+i*.25);
-    ctx.fillStyle='#2a2a35'; ctx.fillRect(lx-1,h*.5,3,h*.26);
-    // Lamp head
-    ctx.fillStyle='#3a3a45'; ctx.fillRect(lx-8,h*.5,18,4);
-    // Light bulb glow
-    const lg=ctx.createRadialGradient(lx,h*.76,5,lx,h*.76,100);
+    ctx.fillStyle='#2a2a35'; ctx.fillRect(lx,h*.5,1,h*.26);
+    ctx.fillStyle='#3a3a45'; ctx.fillRect(lx-2,h*.5,4,1);
+    const lg=ctx.createRadialGradient(lx,h*.76,1,lx,h*.76,20);
     lg.addColorStop(0,'rgba(255,200,120,0.08)'); lg.addColorStop(.5,'rgba(255,180,80,0.03)'); lg.addColorStop(1,'transparent');
-    ctx.fillStyle=lg; ctx.fillRect(lx-100,h*.5,200,h*.4);
+    ctx.fillStyle=lg; ctx.fillRect(lx-20,h*.5,40,h*.4);
   }
 
   // Wet ground reflections
@@ -356,219 +346,193 @@ function drawNightCity(t) {
   ctx.scale(1,-1); ctx.translate(0,-h*1.52);
   for(let i=0;i<near.length;i++){
     const bx=i*(w/near.length),bw=w/near.length+1;
-    ctx.fillStyle='#ff8'; ctx.fillRect(bx,h*.65,bw,20);
+    ctx.fillStyle='#ff8'; ctx.fillRect(bx,h*.65,bw,4);
   }
   ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1;
 }
 
 function drawFountain(t) {
-  const w=canvas.width, h=canvas.height;
+  const w=GAME_W, h=GAME_H;
   drawNightCity(t);
 
-  // Fountain - larger and centered
   const fx=w/2, fy=h*.72;
 
-  // Pool (elliptical)
+  // Pool
   ctx.fillStyle='#1a2a3a';
-  ctx.beginPath(); ctx.ellipse(fx,fy+8,70,18,0,0,Math.PI*2); ctx.fill();
-  // Water in pool
-  const wg=ctx.createRadialGradient(fx,fy+5,5,fx,fy+5,65);
+  ctx.beginPath(); ctx.ellipse(fx,fy+2,14,4,0,0,Math.PI*2); ctx.fill();
+  const wg=ctx.createRadialGradient(fx,fy+1,1,fx,fy+1,13);
   wg.addColorStop(0,'rgba(80,140,200,0.3)'); wg.addColorStop(1,'rgba(40,80,140,0.1)');
-  ctx.fillStyle=wg; ctx.beginPath(); ctx.ellipse(fx,fy+5,60,14,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=wg; ctx.beginPath(); ctx.ellipse(fx,fy+1,12,3,0,0,Math.PI*2); ctx.fill();
 
-  // Fountain pillar
-  ctx.fillStyle='#4a4a5a'; ctx.fillRect(fx-6,fy-45,12,50);
-  ctx.fillStyle='#5a5a6a'; ctx.fillRect(fx-10,fy-8,20,8);
-  ctx.fillStyle='#555568'; ctx.fillRect(fx-4,fy-48,8,5);
+  // Pillar
+  ctx.fillStyle='#4a4a5a'; ctx.fillRect(fx-1,fy-9,2,10);
+  ctx.fillStyle='#5a5a6a'; ctx.fillRect(fx-2,fy-2,4,2);
+  ctx.fillStyle='#555568'; ctx.fillRect(fx-1,fy-10,2,1);
 
-  // Water streams (animated arcs)
-  for(let i=0;i<20;i++){
-    const angle=t*.003+i*0.32;
-    const spread=25+Math.sin(t*.002)*5;
+  // Water streams
+  for(let i=0;i<10;i++){
+    const angle=t*.003+i*0.63;
+    const spread=5+Math.sin(t*.002)*1;
     const px=fx+Math.sin(angle)*spread;
-    const py=fy-45+Math.abs(Math.sin(angle*1.5))*(-15)+((angle*5)%40);
+    const py=fy-9+Math.abs(Math.sin(angle*1.5))*(-3)+((angle*5)%8);
     const alpha=.3+Math.sin(t*.005+i)*.2;
     ctx.fillStyle=`rgba(120,180,240,${alpha})`;
-    ctx.beginPath(); ctx.arc(px,py,2,0,Math.PI*2); ctx.fill();
+    ctx.fillRect(px|0,py|0,1,1);
   }
-  // Water drops falling
-  for(let i=0;i<15;i++){
-    const dx=fx+Math.sin(i*2.4)*40;
-    const dy=fy-20+((t*.08+i*17)%35);
+  for(let i=0;i<8;i++){
+    const dx=fx+Math.sin(i*2.4)*8;
+    const dy=fy-4+((t*.08+i*17)%7);
     ctx.fillStyle='rgba(150,200,255,0.4)';
-    ctx.beginPath(); ctx.arc(dx,dy,1.5,0,Math.PI*2); ctx.fill();
+    ctx.fillRect(dx|0,dy|0,1,1);
   }
 
-  // Fountain light glow
-  const fg=ctx.createRadialGradient(fx,fy-20,5,fx,fy-20,120);
+  // Glow
+  const fg=ctx.createRadialGradient(fx,fy-4,1,fx,fy-4,24);
   fg.addColorStop(0,'rgba(100,160,230,0.06)'); fg.addColorStop(1,'transparent');
-  ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(fx,fy-20,120,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(fx,fy-4,24,0,Math.PI*2); ctx.fill();
 }
 
 function drawPub(t) {
-  const w=canvas.width, h=canvas.height;
+  const w=GAME_W, h=GAME_H;
 
-  // Warm background gradient
-  const bg=ctx.createRadialGradient(w*.5,h*.3,50,w*.5,h*.5,w*.6);
+  const bg=ctx.createRadialGradient(w*.5,h*.3,10,w*.5,h*.5,w*.6);
   bg.addColorStop(0,'#2a1a0e'); bg.addColorStop(.5,'#1a1008'); bg.addColorStop(1,'#0e0a05');
   ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
 
-  // Ceiling with wooden planks
+  // Ceiling
   const cg=ctx.createLinearGradient(0,0,0,h*.12);
   cg.addColorStop(0,'#1a1008'); cg.addColorStop(1,'#2a1a0e');
   ctx.fillStyle=cg; ctx.fillRect(0,0,w,h*.12);
-  for(let x=0;x<w;x+=w/8){ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(x,0,2,h*.12);}
+  for(let x=0;x<w;x+=w/8){ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(x,0,1,h*.12);}
 
   // Back wall
   const wg=ctx.createLinearGradient(0,h*.12,0,h*.55);
   wg.addColorStop(0,'#1e1208'); wg.addColorStop(1,'#181006');
   ctx.fillStyle=wg; ctx.fillRect(0,h*.12,w,h*.43);
 
-  // Banknotes on wall (smoother)
-  for(let i=0;i<50;i++){
+  // Banknotes on wall
+  for(let i=0;i<20;i++){
     const bx=((i*97)%w), by=h*.14+((i*67)%(h*.38));
-    const rot=Math.sin(i*3.7)*0.3;
-    ctx.save(); ctx.translate(bx,by); ctx.rotate(rot);
     ctx.fillStyle=`rgba(${160+((i*37)%80)},${150+((i*53)%80)},${100+((i*29)%60)},0.12)`;
-    ctx.fillRect(-8,-3,16,6);
-    ctx.restore();
+    ctx.fillRect(bx,by,3,1);
   }
 
-  // Warm ceiling lights
+  // Ceiling lights
   for(let i=0;i<3;i++){
     const lx=w*(.25+i*.25);
-    const lg=ctx.createRadialGradient(lx,h*.12,3,lx,h*.3,180);
+    const lg=ctx.createRadialGradient(lx,h*.12,1,lx,h*.3,36);
     lg.addColorStop(0,'rgba(255,180,80,0.12)'); lg.addColorStop(.3,'rgba(255,150,50,0.04)'); lg.addColorStop(1,'transparent');
     ctx.fillStyle=lg; ctx.fillRect(0,0,w,h*.6);
-    // Light fixture
-    ctx.fillStyle='#4a3520'; ctx.fillRect(lx-6,h*.1,12,8);
+    ctx.fillStyle='#4a3520'; ctx.fillRect(lx-1,h*.1,3,2);
     ctx.fillStyle='rgba(255,200,100,0.6)';
-    ctx.beginPath(); ctx.arc(lx,h*.12,4,0,Math.PI*2); ctx.fill();
+    ctx.fillRect(lx,h*.12,1,1);
   }
 
-  // Bar counter (wood grain)
+  // Bar counter
   const bar=ctx.createLinearGradient(0,h*.62,0,h*.67);
   bar.addColorStop(0,'#4a3018'); bar.addColorStop(.5,'#3a2410'); bar.addColorStop(1,'#2a1808');
   ctx.fillStyle=bar; ctx.fillRect(0,h*.62,w,h*.05);
-  // Counter edge highlight
-  ctx.fillStyle='rgba(255,200,120,0.08)'; ctx.fillRect(0,h*.62,w,2);
-
-  // Below counter
+  ctx.fillStyle='rgba(255,200,120,0.08)'; ctx.fillRect(0,h*.62,w,1);
   ctx.fillStyle='#120e08'; ctx.fillRect(0,h*.67,w,h*.33);
 
-  // Beer glasses (larger, with detail)
+  // Beer glasses
   for(let i=0;i<2;i++){
-    const gx=w/2-40+i*60, gy=h*.55;
-    // Glass
-    ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx,gy,18,25);
-    // Beer
-    const beer=ctx.createLinearGradient(gx,gy+3,gx,gy+22);
+    const gx=w/2-8+i*12, gy=h*.55;
+    ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx,gy,4,5);
+    const beer=ctx.createLinearGradient(gx,gy+1,gx,gy+4);
     beer.addColorStop(0,'#c49030'); beer.addColorStop(1,'#a07020');
-    ctx.fillStyle=beer; ctx.fillRect(gx+2,gy+3,14,19);
-    // Foam
-    ctx.fillStyle='#f0e8d0'; ctx.fillRect(gx+1,gy+1,16,5);
-    ctx.fillStyle='rgba(255,255,240,0.5)';
-    ctx.beginPath(); ctx.arc(gx+5,gy+2,3,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(gx+12,gy+3,3,0,Math.PI*2); ctx.fill();
-    // Handle
-    ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx+16,gy+5,5,12);
+    ctx.fillStyle=beer; ctx.fillRect(gx+1,gy+1,2,3);
+    ctx.fillStyle='#f0e8d0'; ctx.fillRect(gx,gy,4,1);
+    ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx+3,gy+1,1,2);
   }
 
-  // Floor
   ctx.fillStyle='#0e0a06'; ctx.fillRect(0,h*.85,w,h*.15);
 }
 
 function drawSteppe(t) {
-  const w=canvas.width, h=canvas.height;
+  const w=GAME_W, h=GAME_H;
 
-  // Beautiful night sky gradient
   const sky=ctx.createLinearGradient(0,0,0,h*.62);
   sky.addColorStop(0,'#050510'); sky.addColorStop(.3,'#0a0a20'); sky.addColorStop(.6,'#10102e'); sky.addColorStop(1,'#1a1840');
   ctx.fillStyle=sky; ctx.fillRect(0,0,w,h*.65);
   drawStars(t);
 
-  // Milky way suggestion
+  // Milky way
   ctx.globalAlpha=0.03;
   ctx.fillStyle='#8888cc';
   ctx.beginPath(); ctx.ellipse(w*.6,h*.15,w*.4,h*.08,-.3,0,Math.PI*2); ctx.fill();
   ctx.globalAlpha=1;
 
-  // Moon with glow
+  // Moon
   const mx=w*.82,my=h*.1;
-  const mg=ctx.createRadialGradient(mx,my,15,mx,my,80);
+  const mg=ctx.createRadialGradient(mx,my,3,mx,my,16);
   mg.addColorStop(0,'rgba(240,230,210,0.2)'); mg.addColorStop(1,'transparent');
-  ctx.fillStyle=mg; ctx.beginPath(); ctx.arc(mx,my,80,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#e8dcc8'; ctx.beginPath(); ctx.arc(mx,my,18,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#d0c4b0'; ctx.beginPath(); ctx.arc(mx-3,my+2,5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#c8bca8'; ctx.beginPath(); ctx.arc(mx+7,my-5,3,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#050510'; ctx.beginPath(); ctx.arc(mx+8,my-4,16,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=mg; ctx.beginPath(); ctx.arc(mx,my,16,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#e8dcc8'; ctx.beginPath(); ctx.arc(mx,my,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#d0c4b0'; ctx.fillRect(mx-1,my,1,1);
+  ctx.fillStyle='#050510'; ctx.beginPath(); ctx.arc(mx+2,my-1,3,0,Math.PI*2); ctx.fill();
 
-  // Distant mountains
+  // Mountains
   const gy=h*.62;
   ctx.fillStyle='#12122a';
   ctx.beginPath(); ctx.moveTo(0,gy);
-  for(let x=0;x<=w;x+=3) ctx.lineTo(x,gy-20-Math.sin(x*.003)*30-Math.sin(x*.007+2)*15);
+  for(let x=0;x<=w;x+=2) ctx.lineTo(x,gy-4-Math.sin(x*.015)*6-Math.sin(x*.035+2)*3);
   ctx.lineTo(w,gy); ctx.fill();
 
-  // Steppe ground with gradient
+  // Ground
   const gg=ctx.createLinearGradient(0,gy,0,h);
   gg.addColorStop(0,'#2a3a1a'); gg.addColorStop(.2,'#223014'); gg.addColorStop(.5,'#1a2610'); gg.addColorStop(1,'#0f1a08');
   ctx.fillStyle=gg; ctx.fillRect(0,gy,w,h-gy);
 
   // Rolling hills
   for(let layer=0;layer<3;layer++){
-    const off=layer*1.5, amp=12+layer*8, col=`rgba(${30-layer*5},${50-layer*8},${20-layer*5},0.5)`;
-    ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,gy+15+layer*10);
-    for(let x=0;x<=w;x+=3) ctx.lineTo(x,gy+15+layer*10+Math.sin(x*.005+off)*amp+Math.sin(x*.002+off*2)*amp*.5);
+    const off=layer*1.5, amp=3+layer*2, col=`rgba(${30-layer*5},${50-layer*8},${20-layer*5},0.5)`;
+    ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,gy+3+layer*2);
+    for(let x=0;x<=w;x+=2) ctx.lineTo(x,gy+3+layer*2+Math.sin(x*.025+off)*amp+Math.sin(x*.01+off*2)*amp*.5);
     ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.fill();
   }
 
-  // Road (perspective)
-  const rg=ctx.createLinearGradient(0,gy+30,0,h);
+  // Road
+  const rg=ctx.createLinearGradient(0,gy+6,0,h);
   rg.addColorStop(0,'#1a1a20'); rg.addColorStop(1,'#222228');
   ctx.fillStyle=rg;
-  ctx.beginPath(); ctx.moveTo(w*.43,gy+30); ctx.lineTo(w*.57,gy+30);
+  ctx.beginPath(); ctx.moveTo(w*.43,gy+6); ctx.lineTo(w*.57,gy+6);
   ctx.lineTo(w*.75,h); ctx.lineTo(w*.25,h); ctx.fill();
-  // Road edges
-  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(w*.43,gy+30); ctx.lineTo(w*.25,h); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(w*.57,gy+30); ctx.lineTo(w*.75,h); ctx.stroke();
-  // Center dashes (animated)
+  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(w*.43,gy+6); ctx.lineTo(w*.25,h); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(w*.57,gy+6); ctx.lineTo(w*.75,h); ctx.stroke();
   ctx.fillStyle='#f4a261';
   for(let i=0;i<10;i++){
     const r=(i+(t*.0003%1))/10;
-    const dy=gy+35+r*(h-gy-35);
-    const dw=2+r*12;
-    const dh=1+r*4;
+    const dy=gy+7+r*(h-gy-7);
+    const dw=.5+r*3;
+    const dh=.5+r*1;
     ctx.globalAlpha=.2+r*.6;
     ctx.fillRect(w/2-dw/2,dy,dw,dh);
   }
   ctx.globalAlpha=1;
 
-  // Atmospheric haze at horizon
-  const haze=ctx.createLinearGradient(0,gy-10,0,gy+30);
+  const haze=ctx.createLinearGradient(0,gy-2,0,gy+6);
   haze.addColorStop(0,'transparent'); haze.addColorStop(1,'rgba(15,15,30,0.3)');
-  ctx.fillStyle=haze; ctx.fillRect(0,gy-10,w,40);
+  ctx.fillStyle=haze; ctx.fillRect(0,gy-2,w,8);
 }
 
 function drawRainScene(t) {
-  const w=canvas.width, h=canvas.height;
-  // Dark moody gradient
+  const w=GAME_W, h=GAME_H;
   const sky=ctx.createLinearGradient(0,0,0,h);
   sky.addColorStop(0,'#060610'); sky.addColorStop(.5,'#080814'); sky.addColorStop(1,'#0a0a12');
   ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
 
-  // Distant city silhouettes with gradient
+  // City silhouettes
   for(let i=0;i<15;i++){
     const bx=i*(w/15),bw=w/15+1,bh=h*(.12+Math.sin(i*1.7+.5)*.08);
     const bg=ctx.createLinearGradient(bx,h*.6-bh,bx,h*.6);
     bg.addColorStop(0,'#0e0e18'); bg.addColorStop(1,'#0a0a12');
     ctx.fillStyle=bg; ctx.fillRect(bx,h*.6-bh,bw,bh+h*.4);
-    // Faint windows
-    for(let wy=h*.6-bh+10;wy<h*.58;wy+=14){
-      for(let wx=bx+5;wx<bx+bw-5;wx+=10){
-        if(Math.sin(i*4+wx*.1+wy*.1)>.5){
-          ctx.fillStyle='rgba(255,200,100,0.06)'; ctx.fillRect(wx,wy,4,5);
+    for(let wy=h*.6-bh+2;wy<h*.58;wy+=3){
+      for(let wx=bx+1;wx<bx+bw-1;wx+=2){
+        if(Math.sin(i*4+wx*.5+wy*.5)>.5){
+          ctx.fillStyle='rgba(255,200,100,0.06)'; ctx.fillRect(wx,wy,1,1);
         }
       }
     }
@@ -579,70 +543,61 @@ function drawRainScene(t) {
   gnd.addColorStop(0,'#0a0a14'); gnd.addColorStop(1,'#060610');
   ctx.fillStyle=gnd; ctx.fillRect(0,h*.72,w,h*.28);
 
-  // Puddle reflections
+  // Puddles
   for(let i=0;i<5;i++){
-    const px=w*(.1+i*.2+Math.sin(i*2)*.05), pw=40+i*10;
-    const pg=ctx.createRadialGradient(px,h*.82,2,px,h*.82,pw);
+    const px=w*(.1+i*.2+Math.sin(i*2)*.05), pw=8+i*2;
+    const pg=ctx.createRadialGradient(px,h*.82,1,px,h*.82,pw);
     pg.addColorStop(0,'rgba(80,100,150,0.06)'); pg.addColorStop(1,'transparent');
-    ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(px,h*.82,pw,8,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(px,h*.82,pw,2,0,0,Math.PI*2); ctx.fill();
   }
 
-  // Rain (smooth, varied)
-  for(let i=0;i<120;i++){
+  // Rain
+  for(let i=0;i<30;i++){
     const rx=(i*47+t*.3)%w;
     const ry=((t*.6+i*73)%h);
-    const len=8+Math.random()*8;
     const alpha=.05+Math.random()*.1;
-    ctx.strokeStyle=`rgba(150,180,220,${alpha})`; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(rx+.5,ry+len); ctx.stroke();
+    ctx.fillStyle=`rgba(150,180,220,${alpha})`;
+    ctx.fillRect(rx,ry,1,2);
   }
 
-  // Fog layer
   const fog=ctx.createLinearGradient(0,h*.5,0,h*.8);
   fog.addColorStop(0,'transparent'); fog.addColorStop(.5,'rgba(10,10,20,0.2)'); fog.addColorStop(1,'transparent');
   ctx.fillStyle=fog; ctx.fillRect(0,h*.5,w,h*.3);
 }
 
 function drawDarkRoom(t) {
-  const w=canvas.width, h=canvas.height;
-  // Very dark room
+  const w=GAME_W, h=GAME_H;
   ctx.fillStyle='#040406'; ctx.fillRect(0,0,w,h);
 
-  // Window (larger, more detailed)
-  const wx=w*.62, wy=h*.15, ww=120, wh=90;
-  // Window frame
-  ctx.fillStyle='#1a1a22'; ctx.fillRect(wx-4,wy-4,ww+8,wh+8);
-  // Night sky through window
+  // Window
+  const wx=w*.62, wy=h*.15, ww=24, wh=18;
+  ctx.fillStyle='#1a1a22'; ctx.fillRect(wx-1,wy-1,ww+2,wh+2);
   const wsky=ctx.createLinearGradient(wx,wy,wx,wy+wh);
   wsky.addColorStop(0,'#0a0a25'); wsky.addColorStop(1,'#10103a');
   ctx.fillStyle=wsky; ctx.fillRect(wx,wy,ww,wh);
-  // Stars through window
-  for(let i=0;i<8;i++){
+  for(let i=0;i<5;i++){
     ctx.fillStyle=`rgba(200,200,255,${.2+Math.sin(t*.01+i)*.15})`;
-    ctx.fillRect(wx+10+((i*23)%100),wy+8+((i*17)%70),2,2);
+    ctx.fillRect(wx+2+((i*5)%20),wy+1+((i*3)%14),1,1);
   }
-  // Window cross
-  ctx.fillStyle='#1a1a22'; ctx.fillRect(wx+ww/2-2,wy,4,wh); ctx.fillRect(wx,wy+wh/2-2,ww,4);
-  // Curtains
-  ctx.fillStyle='rgba(20,15,25,0.6)'; ctx.fillRect(wx-10,wy-4,15,wh+8); ctx.fillRect(wx+ww-5,wy-4,15,wh+8);
+  ctx.fillStyle='#1a1a22'; ctx.fillRect(wx+ww/2,wy,1,wh); ctx.fillRect(wx,wy+wh/2,ww,1);
+  ctx.fillStyle='rgba(20,15,25,0.6)'; ctx.fillRect(wx-2,wy-1,2,wh+2); ctx.fillRect(wx+ww,wy-1,2,wh+2);
 
-  // Moonlight beam (soft, volumetric)
+  // Moonlight beam
   ctx.save();
-  const beam=ctx.createLinearGradient(wx+ww/2,wy+wh,wx+ww/2-30,h);
+  const beam=ctx.createLinearGradient(wx+ww/2,wy+wh,wx+ww/2-6,h);
   beam.addColorStop(0,'rgba(80,100,180,0.04)'); beam.addColorStop(1,'transparent');
   ctx.fillStyle=beam;
-  ctx.beginPath(); ctx.moveTo(wx,wy+wh); ctx.lineTo(wx+ww,wy+wh); ctx.lineTo(wx+ww+60,h); ctx.lineTo(wx-60,h); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(wx,wy+wh); ctx.lineTo(wx+ww,wy+wh); ctx.lineTo(wx+ww+12,h); ctx.lineTo(wx-12,h); ctx.fill();
   ctx.restore();
 
-  // Rain on window (animated drops)
-  for(let i=0;i<25;i++){
-    const rx=wx+8+((i*13)%(ww-16));
-    const ry=wy+5+((t*.2+i*23)%(wh-10));
+  // Rain on window
+  for(let i=0;i<8;i++){
+    const rx=wx+1+((i*3)%(ww-2));
+    const ry=wy+1+((t*.2+i*5)%(wh-2));
     ctx.fillStyle='rgba(130,160,220,0.25)';
-    ctx.beginPath(); ctx.arc(rx,ry,1.5,0,Math.PI*2); ctx.fill();
-    // Streak below drop
+    ctx.fillRect(rx,ry,1,1);
     ctx.fillStyle='rgba(130,160,220,0.08)';
-    ctx.fillRect(rx-.5,ry,1,8+Math.sin(i)*4);
+    ctx.fillRect(rx,ry+1,1,2);
   }
 
   // Floor
@@ -651,55 +606,43 @@ function drawDarkRoom(t) {
   ctx.fillStyle=fl; ctx.fillRect(0,h*.78,w,h*.22);
 
   // Desk
-  const dg=ctx.createLinearGradient(0,h*.64,0,h*.68);
-  dg.addColorStop(0,'#2a1e14'); dg.addColorStop(1,'#1a1410');
-  ctx.fillStyle=dg; ctx.fillRect(w*.28,h*.64,w*.44,6);
-  // Desk legs
-  ctx.fillStyle='#18120e'; ctx.fillRect(w*.32,h*.646,5,h*.14); ctx.fillRect(w*.65,h*.646,5,h*.14);
+  ctx.fillStyle='#2a1e14'; ctx.fillRect(w*.28,h*.64,w*.44,1);
+  ctx.fillStyle='#18120e'; ctx.fillRect(w*.32,h*.645,1,h*.14); ctx.fillRect(w*.65,h*.645,1,h*.14);
 
   // Laptop
   const lx=w*.44, ly=h*.5;
-  // Screen
   const scr=ctx.createLinearGradient(lx,ly,lx,ly+h*.14);
   scr.addColorStop(0,'#1a2a45'); scr.addColorStop(1,'#15203a');
-  ctx.fillStyle=scr; ctx.fillRect(lx,ly,80,h*.14);
-  // Screen border
-  ctx.strokeStyle='#2a2a3a'; ctx.lineWidth=2; ctx.strokeRect(lx,ly,80,h*.14);
-  // Screen glow
-  const sg=ctx.createRadialGradient(lx+40,ly+h*.07,10,lx+40,ly+h*.07,150);
+  ctx.fillStyle=scr; ctx.fillRect(lx,ly,16,h*.14);
+  ctx.strokeStyle='#2a2a3a'; ctx.lineWidth=1; ctx.strokeRect(lx,ly,16,h*.14);
+  const sg=ctx.createRadialGradient(lx+8,ly+h*.07,2,lx+8,ly+h*.07,30);
   sg.addColorStop(0,'rgba(40,60,100,0.08)'); sg.addColorStop(1,'transparent');
-  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(lx+40,ly+h*.07,150,0,Math.PI*2); ctx.fill();
-  // Code lines on screen
-  for(let i=0;i<6;i++){
-    const cw=20+Math.sin(i*2.3)*15;
-    ctx.fillStyle='rgba(100,200,150,0.15)'; ctx.fillRect(lx+8,ly+10+i*10,cw,3);
+  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(lx+8,ly+h*.07,30,0,Math.PI*2); ctx.fill();
+  for(let i=0;i<4;i++){
+    const cw=4+Math.sin(i*2.3)*3;
+    ctx.fillStyle='rgba(100,200,150,0.15)'; ctx.fillRect(lx+2,ly+2+i*2,cw,1);
   }
-  // Keyboard
-  ctx.fillStyle='#1a1a25'; ctx.fillRect(lx-5,ly+h*.14,90,6);
+  ctx.fillStyle='#1a1a25'; ctx.fillRect(lx-1,ly+h*.14,18,1);
 
   // Coffee mug
-  ctx.fillStyle='#2a2020'; ctx.fillRect(lx+90,h*.6,12,15);
-  ctx.fillStyle='rgba(80,50,30,0.3)'; ctx.fillRect(lx+92,h*.6+2,8,5);
-  // Steam
-  for(let i=0;i<3;i++){
-    const sx=lx+95+Math.sin(t*.003+i*2)*3;
-    const sy=h*.58-i*6;
-    ctx.fillStyle=`rgba(150,150,180,${.03-i*.008})`;
-    ctx.beginPath(); ctx.arc(sx,sy,3+i,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#2a2020'; ctx.fillRect(lx+18,h*.6,3,3);
+  ctx.fillStyle='rgba(80,50,30,0.3)'; ctx.fillRect(lx+19,h*.6,1,1);
+  for(let i=0;i<2;i++){
+    const sx=lx+19+Math.sin(t*.003+i*2)*.5;
+    ctx.fillStyle=`rgba(150,150,180,${.03-i*.01})`;
+    ctx.fillRect(sx|0,h*.58-i*2,1,1);
   }
 }
 
 function drawHeartsBg(t) {
   drawStars(t);
-  // Soft pink ambient glow
-  const pg=ctx.createRadialGradient(canvas.width*.5,canvas.height*.4,50,canvas.width*.5,canvas.height*.4,canvas.width*.5);
+  const pg=ctx.createRadialGradient(GAME_W*.5,GAME_H*.4,10,GAME_W*.5,GAME_H*.4,GAME_W*.5);
   pg.addColorStop(0,'rgba(229,49,112,0.04)'); pg.addColorStop(1,'transparent');
-  ctx.fillStyle=pg; ctx.fillRect(0,0,canvas.width,canvas.height);
-  // Floating hearts (smooth)
-  for(let i=0;i<20;i++){
-    const x=(i*137.5+t*.015)%canvas.width;
-    const y=(canvas.height-((t*.025+i*89)%canvas.height));
-    const size=8+Math.sin(i*1.7)*4;
+  ctx.fillStyle=pg; ctx.fillRect(0,0,GAME_W,GAME_H);
+  for(let i=0;i<12;i++){
+    const x=(i*32+t*.015)%GAME_W;
+    const y=(GAME_H-((t*.025+i*18)%GAME_H));
+    const size=2+Math.sin(i*1.7)*1;
     const alpha=.06+.08*Math.sin(t*.002+i);
     drawHeart(x,y,size,`rgba(229,49,112,${alpha})`);
   }
@@ -722,8 +665,8 @@ let charAnimations = []; // {type, x, y, scale, frame, flip, speed}
 
 function renderBg() {
   bgTime += 16;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='#0a0a12'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,GAME_W,GAME_H);
+  ctx.fillStyle='#0a0a12'; ctx.fillRect(0,0,GAME_W,GAME_H);
 
   if (bgMode==='stars') drawStars(bgTime);
   else if (bgMode==='city') drawNightCity(bgTime);
@@ -738,8 +681,8 @@ function renderBg() {
   // Draw animated characters
   for (const ch of charAnimations) {
     ch.frame = (ch.frame||0) + (ch.speed||0);
-    if (ch.type==='amaraa') drawAmaraa(ch.x, ch.y, ch.scale||3, Math.floor(ch.frame), ch.flip);
-    if (ch.type==='maagii') drawMaagii(ch.x, ch.y, ch.scale||3, Math.floor(ch.frame), ch.flip);
+    if (ch.type==='amaraa') drawAmaraa(ch.x, ch.y, ch.scale||2, Math.floor(ch.frame), ch.flip);
+    if (ch.type==='maagii') drawMaagii(ch.x, ch.y, ch.scale||2, Math.floor(ch.frame), ch.flip);
   }
 
   requestAnimationFrame(renderBg);
@@ -747,15 +690,14 @@ function renderBg() {
 renderBg();
 
 // ---- INTERACTIVE WALK ENGINE ----
-let walkActive = false, walkX = 0, walkTarget = 3000, walkFrame = 0, walkDir = 0;
-let walkMaagiiX = 2800;
+let walkActive = false, walkX = 0, walkTarget = 600, walkFrame = 0, walkDir = 0;
+let walkMaagiiX = 560;
 let walkReached = false, walkResolve = null;
 
 function drawWalkScene() {
-  const w=canvas.width, h=canvas.height;
+  const w=GAME_W, h=GAME_H;
   const progress = Math.min(walkX / walkTarget, 1);
 
-  // Sky transitions from dark storm to warm dawn
   const sky=ctx.createLinearGradient(0,0,0,h*.7);
   const darkR=6+progress*30, darkG=6+progress*15, darkB=16+progress*20;
   const midR=10+progress*60, midG=10+progress*30, midB=20+progress*30;
@@ -763,20 +705,17 @@ function drawWalkScene() {
   sky.addColorStop(1,`rgb(${midR|0},${midG|0},${midB|0})`);
   ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
 
-  // Stars fade
   if(progress<.6){ctx.globalAlpha=1-progress*1.6;drawStars(bgTime);ctx.globalAlpha=1;}
 
-  // Dawn glow (warm pink/orange on right)
   if(progress>.3){
     const ga=(progress-.3)*.2;
-    const dg=ctx.createRadialGradient(w*.85,h*.35,20,w*.85,h*.35,w*.4);
+    const dg=ctx.createRadialGradient(w*.85,h*.35,4,w*.85,h*.35,w*.4);
     dg.addColorStop(0,`rgba(229,80,80,${ga})`);
     dg.addColorStop(.5,`rgba(229,49,112,${ga*.3})`);
     dg.addColorStop(1,'transparent');
     ctx.fillStyle=dg; ctx.fillRect(0,0,w,h);
   }
 
-  // Ground
   const groundY=h*.72;
   const gg=ctx.createLinearGradient(0,groundY,0,h);
   gg.addColorStop(0,`rgb(${15+progress*20|0},${20+progress*15|0},${10+progress*8|0})`);
@@ -785,65 +724,60 @@ function drawWalkScene() {
 
   const scrollX=-walkX*.5;
 
-  // Parallax trees/poles (far)
+  // Trees
   for(let i=0;i<15;i++){
-    const tx=((i*250+scrollX*.2)%(w+500))-250;
-    const th=35+((i*17)%25);
+    const tx=((i*50+scrollX*.2)%(w+100))-50;
+    const th=8+((i*4)%5);
     ctx.fillStyle=`rgba(${15+progress*15|0},${25+progress*10|0},${12+progress*8|0},0.7)`;
-    ctx.fillRect(tx,groundY-th,3,th);
-    // Branches
+    ctx.fillRect(tx,groundY-th,1,th);
     ctx.fillStyle=`rgba(${20+progress*15|0},${35+progress*12|0},${18+progress*8|0},0.5)`;
-    ctx.beginPath();ctx.arc(tx+1,groundY-th,10+i%5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(tx,groundY-th,2+i%2,0,Math.PI*2);ctx.fill();
   }
 
-  // Rain (fades with progress)
+  // Rain
   if(progress<.5){
     const rAlpha=.08*(1-progress*2);
-    for(let i=0;i<80;i++){
+    for(let i=0;i<20;i++){
       const rx=(i*47+bgTime*.3)%w;
       const ry=((bgTime*.5+i*73)%h);
-      ctx.strokeStyle=`rgba(150,180,220,${rAlpha})`;ctx.lineWidth=1;
-      ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx+.5,ry+10);ctx.stroke();
+      ctx.fillStyle=`rgba(150,180,220,${rAlpha})`;
+      ctx.fillRect(rx,ry,1,2);
     }
   }
 
   // Road
   ctx.fillStyle=`rgba(${14+progress*8|0},${14+progress*6|0},${18+progress*5|0},1)`;
-  ctx.fillRect(0,groundY+12,w,22);
-  ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(0,groundY+12,w,1);
-  // Dashes
+  ctx.fillRect(0,groundY+3,w,5);
+  ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(0,groundY+3,w,1);
   for(let i=0;i<30;i++){
-    const dx=((i*60+scrollX)%(w+100))-50;
+    const dx=((i*12+scrollX)%(w+20))-10;
     ctx.fillStyle=`rgba(100,100,100,${.1+progress*.1})`;
-    ctx.fillRect(dx,groundY+21,20,2);
+    ctx.fillRect(dx,groundY+5,4,1);
   }
 
-  // Maagii ahead with warm glow
+  // Maagii ahead
   const msx=w*.5+(walkMaagiiX-walkX)*.5;
-  if(msx<w+200){
+  if(msx<w+40){
     const dist=Math.max(1,(msx-w*.35)/w);
-    // Her warm glow grows as you approach
     const ga=Math.max(0,.2-dist*.15);
-    const glow=ctx.createRadialGradient(msx,groundY-5,5,msx,groundY-5,120/dist);
+    const glow=ctx.createRadialGradient(msx,groundY-1,1,msx,groundY-1,24/dist);
     glow.addColorStop(0,`rgba(229,49,112,${ga})`);
     glow.addColorStop(.5,`rgba(255,150,100,${ga*.3})`);
     glow.addColorStop(1,'transparent');
-    ctx.fillStyle=glow; ctx.fillRect(msx-200,groundY-200,400,300);
-    if(msx<w+50) drawMaagii(msx,groundY+5,5,Math.floor(bgTime*.002),false);
+    ctx.fillStyle=glow; ctx.fillRect(msx-40,groundY-40,80,60);
+    if(msx<w+10) drawMaagii(msx,groundY+1,2,Math.floor(bgTime*.002),false);
   }
 
   // Amartuvshin
   const asx=w*.35;
   walkFrame+=walkDir!==0?.15:0;
-  drawAmaraa(asx,groundY+5,5,Math.floor(walkFrame),walkDir<0);
+  drawAmaraa(asx,groundY+1,2,Math.floor(walkFrame),walkDir<0);
 
   // Distance text
-  const km=Math.max(0,Math.round((walkMaagiiX-walkX)/10));
+  const km=Math.max(0,Math.round((walkMaagiiX-walkX)/2));
   if(km>0){
     ctx.fillStyle='rgba(229,49,112,0.8)';
-    ctx.font="14px 'Press Start 2P'";ctx.textAlign='center';
-    ctx.fillText(km+' km to Maagii',w/2,h*.1);
-    ctx.fillStyle='rgba(229,49,112,0.15)';
+    ctx.font="4px 'Press Start 2P'";ctx.textAlign='center';
     ctx.fillText(km+' km to Maagii',w/2,h*.1);
   }
   ctx.textAlign='left';
@@ -859,10 +793,10 @@ function startWalk() {
 function updateWalk() {
   if (!walkActive) return;
   if (walkDir !== 0) {
-    walkX += walkDir * 4;
+    walkX += walkDir * 1;
     walkX = Math.max(0, walkX);
   }
-  if (walkX >= walkMaagiiX - 50 && !walkReached) {
+  if (walkX >= walkMaagiiX - 10 && !walkReached) {
     walkReached = true;
     walkActive = false;
     walkDir = 0;
@@ -1048,10 +982,9 @@ scenes.push({id:'title',bg:'stars',dialogues:[],onEnter:async()=>{
   el.innerHTML='<div class="pixel-heart">♥</div><h1>500km<br>to You</h1><div class="subtitle">A Love Story</div><div class="start-prompt" id="startPrompt">[ Click anywhere to begin ]</div>';
   el.classList.add('active');
   // Show characters on title screen
-  const w=canvas.width, h=canvas.height;
   charAnimations=[
-    {type:'amaraa',x:w*0.35,y:h*0.82,scale:6,frame:0,speed:0},
-    {type:'maagii',x:w*0.65,y:h*0.82,scale:6,frame:0,speed:0}
+    {type:'amaraa',x:GAME_W*0.35,y:GAME_H*0.82,scale:2,frame:0,speed:0},
+    {type:'maagii',x:GAME_W*0.65,y:GAME_H*0.82,scale:2,frame:0,speed:0}
   ];
   await sleep(2500);$('#startPrompt').style.opacity='1';$('#musicBtn').style.display='block';
   await new Promise(r=>{const h=()=>{document.removeEventListener('click',h);initAudio();startMusic();r();};document.addEventListener('click',h);});
@@ -1063,7 +996,7 @@ scenes.push({id:'title',bg:'stars',dialogues:[],onEnter:async()=>{
 // --- CH1: THE SWIPE ---
 scenes.push({id:'ch1',bg:'stars',dialogues:[
   {action:'wait',duration:3000},
-  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.5,y:canvas.height*0.55,scale:5,frame:0,speed:0}},
+  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.5,y:GAME_H*0.55,scale:2,frame:0,speed:0}},
   {text:"It started with a {h}swipe{/h}.",speed:45},
   {text:"Just one. To the right.",speed:40},
   {text:"Out of all the faces, all the profiles...\nthe algorithm chose {h}you{/h}.",speed:35},
@@ -1079,11 +1012,11 @@ scenes.push({id:'ch1',bg:'stars',dialogues:[
 // --- CH2: THE FOUNTAIN ---
 scenes.push({id:'ch2',bg:'fountain',dialogues:[
   {action:'wait',duration:2500},
-  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.25,y:canvas.height*0.72,scale:5,frame:0,speed:0.08}},
+  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.25,y:GAME_H*0.72,scale:2,frame:0,speed:0.08}},
   {text:"We agreed to meet at the {g}fountain{/g}.",speed:35},
   {text:"I walked there.\nTrying to look cool. Calm.",speed:35},
   {text:"My heart was beating\nlike it wanted to escape my chest.",speed:30},
-  {action:'addChar',char:{type:'maagii',x:canvas.width*0.75,y:canvas.height*0.72,scale:5,frame:0,speed:0.08,flip:true}},
+  {action:'addChar',char:{type:'maagii',x:GAME_W*0.75,y:GAME_H*0.72,scale:2,frame:0,speed:0.08,flip:true}},
   {text:"Then I saw you.",speed:50},
   {text:"Standing there,\nmore beautiful than any photo could show.",speed:30},
   {action:'moveChars',fn:async()=>{
@@ -1091,7 +1024,7 @@ scenes.push({id:'ch2',bg:'fountain',dialogues:[
     const a=charAnimations.find(c=>c.type==='amaraa');
     const m=charAnimations.find(c=>c.type==='maagii');
     if(a&&m){
-      const targetA=canvas.width*0.45,targetM=canvas.width*0.55;
+      const targetA=GAME_W*0.45,targetM=GAME_W*0.55;
       for(let i=0;i<60;i++){
         a.x+=(targetA-a.x)*0.05; m.x+=(targetM-m.x)*0.05;
         await sleep(30);
@@ -1109,8 +1042,8 @@ scenes.push({id:'ch2',bg:'fountain',dialogues:[
 // --- CH3: DRAFT BEER ---
 scenes.push({id:'ch3',bg:'pub',dialogues:[
   {action:'wait',duration:3000},
-  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.4,y:canvas.height*0.63,scale:4,frame:0,speed:0}},
-  {action:'addChar',char:{type:'maagii',x:canvas.width*0.6,y:canvas.height*0.63,scale:4,frame:0,speed:0,flip:true}},
+  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.4,y:GAME_H*0.63,scale:2,frame:0,speed:0}},
+  {action:'addChar',char:{type:'maagii',x:GAME_W*0.6,y:GAME_H*0.63,scale:2,frame:0,speed:0,flip:true}},
   {text:"We found a pub.\nOrdered {g}draft beer{/g}. Two glasses.",speed:35},
   {text:"You talked.\nI listened.\nYou laughed.\n{h}I fell.{/h}",speed:40},
   {text:"I reached across the table\nand took your hands in mine.",speed:35},
@@ -1193,7 +1126,7 @@ scenes.push({id:'ch6',bg:'rain',dialogues:[
 // --- CH7: THE RING ---
 scenes.push({id:'ch7',bg:'darkroom',dialogues:[
   {action:'wait',duration:2500},
-  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.35,y:canvas.height*0.72,scale:5,frame:0,speed:0}},
+  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.35,y:GAME_H*0.72,scale:2,frame:0,speed:0}},
   {text:"One night, I sat in my room.\nStaring at a small box.",speed:30},
   {text:"A {h}ring{/h}.",speed:60},
   {text:"I couldn't fly to you.\nBut I could send my {h}promise{/h}.",speed:30},
@@ -1211,7 +1144,7 @@ scenes.push({id:'ch7',bg:'darkroom',dialogues:[
 // --- CH8: THE STRUGGLE ---
 scenes.push({id:'ch8',bg:'darkroom',dialogues:[
   {action:'wait',duration:3000},
-  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.46,y:canvas.height*0.72,scale:5,frame:0,speed:0}},
+  {action:'addChar',char:{type:'amaraa',x:GAME_W*0.46,y:GAME_H*0.72,scale:2,frame:0,speed:0}},
   {text:"You don't know what happens\nwhen I put down my phone.",speed:30},
   {text:"The {h}anxiety{/h} hits.\nMy chest tightens.\nI can't breathe.",speed:28},
   {text:"I sit alone in my room\nin Ulaanbaatar.\nThe city is loud but I hear {h}nothing{/h}.",speed:28},
@@ -1293,8 +1226,8 @@ scenes.push({id:'ch10',bg:'hearts',dialogues:[
   const el=createSceneEl('ch10');
   el.innerHTML=`<div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">▼</div></div></div>`;
   charAnimations=[
-    {type:'amaraa',x:canvas.width*0.42,y:canvas.height*0.55,scale:5,frame:0,speed:0},
-    {type:'maagii',x:canvas.width*0.58,y:canvas.height*0.55,scale:5,frame:0,speed:0,flip:true}
+    {type:'amaraa',x:GAME_W*0.42,y:GAME_H*0.55,scale:2,frame:0,speed:0},
+    {type:'maagii',x:GAME_W*0.58,y:GAME_H*0.55,scale:2,frame:0,speed:0,flip:true}
   ];
 }});
 
