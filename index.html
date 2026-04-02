@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>500km to You</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 20px rgba(229,49,112,.3)}50%{box-shadow:0 0 40px rgba(229,49,112,.7),0 0 60px rgba(229,49,112,.3)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.15)}30%{transform:scale(1)}45%{transform:scale(1.1)}}
+
+body{
+  background:#0a0a12;color:#f0e6d3;
+  font-family:'Press Start 2P',monospace;
+  overflow:hidden;width:100vw;height:100vh;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
+}
+#game{width:100vw;height:100vh;position:relative;overflow:hidden}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated}
+.scene{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 1.2s ease;pointer-events:none;z-index:10}
+.scene.active{opacity:1;pointer-events:all}
+
+#boot .boot-text{font-size:10px;line-height:2.2;color:#00ff41;text-align:left;padding:40px;max-width:600px}
+#boot .boot-line{opacity:0;display:block}
+
+#title{background:radial-gradient(ellipse at center,#1a1a2e 0%,#0a0a12 100%)}
+#title h1{font-size:clamp(20px,5vw,42px);color:#e53170;text-shadow:3px 3px 0 #8b1a4a,0 0 30px rgba(229,49,112,.5);animation:float 3s ease-in-out infinite;text-align:center;line-height:1.5;padding:0 20px}
+#title .subtitle{font-size:clamp(8px,2vw,14px);color:#f4a261;margin-top:20px;opacity:0;animation:fadeIn 2s ease forwards;animation-delay:1s}
+#title .start-prompt{font-size:clamp(8px,1.8vw,12px);color:#f0e6d3;margin-top:50px;animation:blink 1.5s ease-in-out infinite;opacity:0}
+.pixel-heart{font-size:clamp(40px,8vw,80px);animation:heartbeat 1.5s ease-in-out infinite;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(229,49,112,.6))}
+
+.dialogue-container{position:absolute;bottom:0;left:0;width:100%;padding:20px;z-index:20}
+.dialogue-box{background:rgba(10,10,18,.92);border:3px solid #e53170;border-radius:4px;padding:24px 28px;max-width:700px;margin:0 auto;position:relative;box-shadow:0 0 20px rgba(229,49,112,.2),inset 0 0 30px rgba(0,0,0,.5)}
+.dialogue-text{font-size:clamp(9px,1.8vw,13px);line-height:2;color:#f0e6d3;min-height:60px}
+.dialogue-text .highlight{color:#e53170}
+.dialogue-text .gold{color:#f4a261}
+.dialogue-text .green{color:#00ff41}
+.advance-indicator{position:absolute;bottom:8px;right:12px;font-size:8px;color:#e53170;animation:blink 1s ease-in-out infinite}
+.speaker-name{font-size:10px;color:#f4a261;margin-bottom:10px;letter-spacing:2px}
+
+.photo-container{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);z-index:15;opacity:0;transition:opacity 1.5s ease}
+.photo-container.visible{opacity:1}
+.photo-frame{border:4px solid #e53170;padding:6px;background:#0a0a12;box-shadow:0 0 30px rgba(229,49,112,.4);animation:glowPulse 3s ease-in-out infinite;max-width:min(75vw,380px);max-height:50vh}
+.photo-frame img{display:block;width:100%;height:100%;object-fit:contain;max-height:calc(50vh - 20px);image-rendering:auto}
+.photo-caption{font-size:clamp(7px,1.5vw,10px);color:#f4a261;text-align:center;margin-top:12px;line-height:1.8}
+
+.visa-stamp{font-size:clamp(24px,6vw,48px);color:#ff0000;border:4px solid #ff0000;padding:10px 30px;transform:rotate(-15deg);opacity:0;letter-spacing:4px;text-shadow:0 0 20px rgba(255,0,0,.5);position:absolute;top:40%;left:50%;margin-left:-150px;z-index:25}
+.km-counter{font-size:clamp(28px,7vw,56px);color:#f4a261;text-shadow:2px 2px 0 #8b5a2a;position:absolute;top:25%;left:50%;transform:translateX(-50%);z-index:15;opacity:0;transition:opacity .5s ease}
+
+.chapter-title{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:25;opacity:0;transition:opacity .8s ease}
+.chapter-title .chapter-num{font-size:clamp(8px,1.5vw,12px);color:#f4a261;letter-spacing:4px;margin-bottom:15px}
+.chapter-title h2{font-size:clamp(16px,4vw,28px);color:#e53170;text-shadow:2px 2px 0 #8b1a4a;line-height:1.6}
+
+.floating-heart{position:absolute;font-size:20px;pointer-events:none;z-index:30;opacity:0}
+.scanline-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0px,rgba(0,0,0,.05) 1px,transparent 1px,transparent 3px);pointer-events:none;z-index:100}
+.music-toggle{position:fixed;top:15px;right:15px;z-index:200;background:rgba(10,10,18,.8);border:2px solid #e53170;color:#e53170;font-family:'Press Start 2P',monospace;font-size:10px;padding:8px 12px;cursor:pointer;border-radius:2px}
+
+.walk-instructions{position:absolute;top:15%;left:50%;transform:translateX(-50%);font-size:clamp(8px,1.8vw,12px);color:#f4a261;z-index:20;text-align:center;line-height:2;opacity:0;transition:opacity 1s ease}
+.walk-km{position:absolute;top:8%;left:50%;transform:translateX(-50%);font-size:clamp(10px,2vw,16px);color:#e53170;z-index:20;text-shadow:0 0 10px rgba(229,49,112,.5)}
+
+.final-message{text-align:center;padding:20px;z-index:15;overflow-y:auto;max-height:100vh}
+.final-message h2{font-size:clamp(16px,4vw,32px);color:#e53170;margin-bottom:20px;animation:heartbeat 2s ease-in-out infinite;text-shadow:0 0 30px rgba(229,49,112,.6)}
+.final-message p{font-size:clamp(8px,1.8vw,12px);line-height:2.5;color:#f0e6d3;max-width:600px;margin:0 auto;opacity:0}
+.final-message .signature{color:#f4a261;font-size:clamp(10px,2vw,14px);margin-top:30px}
+.gallery{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:20px;max-width:500px;margin:20px auto}
+.gallery img{width:100px;height:100px;object-fit:cover;border:2px solid #e53170;border-radius:2px;opacity:0;transition:opacity 1s ease,transform .3s ease}
+.gallery img.visible{opacity:1}
+
+@media(max-width:480px){.dialogue-box{padding:16px 18px}.dialogue-container{padding:10px}}
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="bgCanvas"></canvas>
+  <div class="scanline-overlay"></div>
+  <button class="music-toggle" id="musicBtn" style="display:none;">&#9834; Music</button>
+</div>
+<script>
+// ================================================
+// 500km to You — A Love Story Game
+// Made with love by Amartuvshin for Maagii
+// ================================================
+const $ = s => document.querySelector(s);
+const game = $('#game');
+const canvas = $('#bgCanvas');
+const ctx = canvas.getContext('2d');
+
+// ---- RESIZE ----
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+
+// ---- AUDIO ----
+let audioCtx = null, musicPlaying = false, musicInterval = null;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playNote(freq, dur, time, type='triangle', vol=0.06) {
+  if (!audioCtx) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, time);
+  g.gain.setValueAtTime(vol, time); g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+  o.connect(g); g.connect(audioCtx.destination); o.start(time); o.stop(time + dur);
+}
+const melody = [
+  {n:329.63,d:.6},{n:392,d:.3},{n:440,d:.6},{n:392,d:.3},{n:329.63,d:.9},{n:0,d:.3},
+  {n:293.66,d:.6},{n:329.63,d:.3},{n:392,d:.6},{n:440,d:.3},{n:493.88,d:.9},{n:0,d:.3},
+  {n:523.25,d:.6},{n:493.88,d:.3},{n:440,d:.6},{n:392,d:.3},{n:329.63,d:.6},{n:293.66,d:.3},
+  {n:329.63,d:1.2},{n:0,d:.6},
+  {n:220,d:.6},{n:261.63,d:.3},{n:329.63,d:.6},{n:293.66,d:.3},{n:261.63,d:.9},{n:0,d:.3},
+  {n:246.94,d:.6},{n:293.66,d:.3},{n:392,d:.9},{n:329.63,d:.6},{n:293.66,d:.6},{n:0,d:.6}
+];
+function playMelody() {
+  if (!audioCtx) initAudio();
+  let t = audioCtx.currentTime + 0.1;
+  for (const m of melody) { if (m.n > 0) { playNote(m.n, m.d*.9, t, 'triangle', .05); playNote(m.n*.5, m.d*.9, t, 'sine', .025); } t += m.d; }
+  return t - audioCtx.currentTime;
+}
+function startMusic() { musicPlaying = true; const d = playMelody(); musicInterval = setInterval(() => { if (musicPlaying) playMelody(); }, d * 1000); $('#musicBtn').textContent = '♪ ON'; }
+function stopMusic() { musicPlaying = false; if (musicInterval) clearInterval(musicInterval); $('#musicBtn').textContent = '♪ OFF'; }
+function toggleMusic() { if (musicPlaying) stopMusic(); else startMusic(); }
+
+// ---- PIXEL ART CHARACTER SYSTEM ----
+function drawPixel(x, y, w, h, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(Math.round(x), Math.round(y), w, h);
+}
+
+function drawAmaraa(cx, cy, scale, frame, flip) {
+  const s = scale;
+  const f = flip ? -1 : 1;
+  const px = (dx, dy, w, h, c) => drawPixel(cx + dx*s*f - (flip ? w*s : 0), cy + dy*s, w*s, h*s, c);
+
+  // Hair
+  px(-3, -20, 6, 2, '#1a1a2e');
+  px(-4, -18, 8, 3, '#1a1a2e');
+  px(-4, -15, 2, 2, '#1a1a2e'); // side hair
+  px(2, -15, 2, 2, '#1a1a2e');
+
+  // Face
+  px(-3, -15, 6, 6, '#d4a574');
+  // Eyes
+  px(-2, -13, 1, 1, '#111');
+  px(1, -13, 1, 1, '#111');
+  // Mouth
+  px(-1, -11, 2, 1, '#c48860');
+
+  // Neck
+  px(-1, -9, 2, 1, '#d4a574');
+
+  // Hoodie collar
+  px(-2, -8, 4, 1, '#c4a882');
+
+  // Puffer jacket (round/puffy)
+  px(-5, -7, 10, 2, '#2a2a3a');
+  px(-5, -5, 3, 5, '#2a2a3a'); // left jacket
+  px(2, -5, 3, 5, '#2a2a3a');  // right jacket
+  px(-2, -5, 4, 5, '#c4a882');  // hoodie center visible
+  px(-5, 0, 10, 1, '#2a2a3a');  // jacket bottom
+
+  // Puffer jacket ridges (detail)
+  px(-5, -5, 10, 1, '#333345');
+  px(-5, -3, 10, 1, '#333345');
+
+  // Arms
+  const armSwing = frame % 2 === 0 ? 0 : 1;
+  px(-6, -6 + armSwing, 1, 4, '#2a2a3a');
+  px(5, -6 - armSwing, 1, 4, '#2a2a3a');
+  // Hands
+  px(-6, -2 + armSwing, 1, 1, '#d4a574');
+  px(5, -2 - armSwing, 1, 1, '#d4a574');
+
+  // Legs
+  if (frame % 4 < 2) {
+    px(-2, 1, 2, 4, '#1a1a2a');
+    px(1, 1, 2, 4, '#1a1a2a');
+    px(-2, 5, 2, 1, '#333');
+    px(1, 5, 2, 1, '#333');
+  } else {
+    px(-3, 1, 2, 4, '#1a1a2a');
+    px(2, 1, 2, 4, '#1a1a2a');
+    px(-3, 5, 2, 1, '#333');
+    px(2, 5, 2, 1, '#333');
+  }
+}
+
+function drawMaagii(cx, cy, scale, frame, flip) {
+  const s = scale;
+  const f = flip ? -1 : 1;
+  const px = (dx, dy, w, h, c) => drawPixel(cx + dx*s*f - (flip ? w*s : 0), cy + dy*s, w*s, h*s, c);
+
+  // Hair top
+  px(-3, -19, 6, 2, '#8b6843');
+  px(-4, -17, 8, 3, '#8b6843');
+  // Long hair sides
+  px(-4, -14, 2, 8, '#8b6843');
+  px(2, -14, 2, 8, '#8b6843');
+
+  // Face
+  px(-3, -14, 6, 6, '#e8c4a0');
+  // Eyes
+  px(-2, -12, 1, 1, '#2a1a0a');
+  px(1, -12, 1, 1, '#2a1a0a');
+  // Blush
+  px(-3, -11, 1, 1, '#e8a0a0');
+  px(2, -11, 1, 1, '#e8a0a0');
+  // Smile
+  px(-1, -10, 2, 1, '#d4a080');
+
+  // Neck
+  px(-1, -8, 2, 1, '#e8c4a0');
+
+  // Brown coat
+  px(-4, -7, 8, 2, '#5c3a1e');
+  px(-4, -5, 8, 5, '#5c3a1e');
+  // Inner white shirt visible
+  px(-1, -7, 2, 4, '#f0e6d3');
+  // Coat details (toggles)
+  px(0, -6, 1, 1, '#c4a882');
+  px(0, -4, 1, 1, '#c4a882');
+
+  px(-4, 0, 8, 1, '#5c3a1e'); // coat bottom
+
+  // Arms
+  const armSwing = frame % 2 === 0 ? 0 : 1;
+  px(-5, -5 + armSwing, 1, 4, '#5c3a1e');
+  px(4, -5 - armSwing, 1, 4, '#5c3a1e');
+  px(-5, -1 + armSwing, 1, 1, '#e8c4a0');
+  px(4, -1 - armSwing, 1, 1, '#e8c4a0');
+
+  // Legs
+  if (frame % 4 < 2) {
+    px(-2, 1, 2, 3, '#2a2a3a');
+    px(1, 1, 2, 3, '#2a2a3a');
+    px(-2, 4, 2, 1, '#4a3020');
+    px(1, 4, 2, 1, '#4a3020');
+  } else {
+    px(-3, 1, 2, 3, '#2a2a3a');
+    px(2, 1, 2, 3, '#2a2a3a');
+    px(-3, 4, 2, 1, '#4a3020');
+    px(2, 4, 2, 1, '#4a3020');
+  }
+}
+
+// ---- ENVIRONMENT DRAWING ----
+let stars = [];
+function initStars(n=150) { stars = []; for (let i=0;i<n;i++) stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,s:Math.random()*2+.5,sp:Math.random()*.02+.005,o:Math.random()*Math.PI*2,b:Math.random()*.5+.5}); }
+initStars();
+function drawStars(t) { for (const s of stars) { const a = s.b*(.5+.5*Math.sin(t*s.sp+s.o)); ctx.fillStyle=`rgba(240,230,211,${a})`; ctx.fillRect(s.x|0,s.y|0,Math.ceil(s.s),Math.ceil(s.s)); } }
+
+// ---- 32-BIT SMOOTH ENVIRONMENTS ----
+
+function drawNightCity(t) {
+  const w=canvas.width, h=canvas.height;
+  // Gradient sky
+  const sky=ctx.createLinearGradient(0,0,0,h*.7);
+  sky.addColorStop(0,'#05051a'); sky.addColorStop(0.4,'#0a0a2a'); sky.addColorStop(0.8,'#12122e'); sky.addColorStop(1,'#1a1535');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
+  drawStars(t);
+
+  // Distant buildings (far layer, blueish)
+  const far=[.18,.32,.42,.28,.5,.35,.4,.3,.48,.22,.38,.44,.25,.36,.45,.33,.5,.27];
+  for(let i=0;i<far.length;i++){
+    const bx=i*(w/far.length),bw=w/far.length+1,bh=h*far[i]*.35;
+    const bg=ctx.createLinearGradient(bx,h*.55-bh,bx,h*.55);
+    bg.addColorStop(0,'#10102a'); bg.addColorStop(1,'#0c0c20');
+    ctx.fillStyle=bg; ctx.fillRect(bx,h*.55-bh,bw,bh+h*.45);
+    // Dim windows
+    for(let wy=h*.55-bh+15;wy<h*.53;wy+=14){
+      for(let wx=bx+6;wx<bx+bw-6;wx+=10){
+        const lit=Math.sin(i*3.7+wx*.1+wy*.1)>.3;
+        ctx.fillStyle=lit?'rgba(255,200,100,0.12)':'rgba(30,30,60,0.3)';
+        ctx.fillRect(wx,wy,5,6);
+      }
+    }
+  }
+
+  // Near buildings (foreground, darker)
+  const near=[.3,.55,.45,.6,.35,.52,.65,.4,.58,.48,.55,.38];
+  for(let i=0;i<near.length;i++){
+    const bx=i*(w/near.length),bw=w/near.length+1,bh=h*near[i]*.3;
+    const bg=ctx.createLinearGradient(bx,h*.65-bh,bx,h*.65);
+    bg.addColorStop(0,'#0a0a18'); bg.addColorStop(1,'#080814');
+    ctx.fillStyle=bg; ctx.fillRect(bx,h*.65-bh,bw,bh+h*.35);
+    // Brighter windows
+    for(let wy=h*.65-bh+12;wy<h*.63;wy+=12){
+      for(let wx=bx+5;wx<bx+bw-5;wx+=9){
+        const lit=Math.sin(i*5.3+wx*.13+wy*.07)>.2;
+        if(lit){
+          const wc=Math.random()>.5?'rgba(255,180,80,0.25)':'rgba(200,220,255,0.15)';
+          ctx.fillStyle=wc; ctx.fillRect(wx,wy,4,5);
+          // Window glow
+          ctx.fillStyle=wc.replace(/[\d.]+\)$/,'0.03)');
+          ctx.fillRect(wx-2,wy-2,8,9);
+        }
+      }
+    }
+  }
+
+  // Ground/sidewalk
+  const gnd=ctx.createLinearGradient(0,h*.72,0,h);
+  gnd.addColorStop(0,'#0c0c14'); gnd.addColorStop(.3,'#0a0a10'); gnd.addColorStop(1,'#060608');
+  ctx.fillStyle=gnd; ctx.fillRect(0,h*.72,w,h*.28);
+
+  // Street
+  ctx.fillStyle='#0e0e14'; ctx.fillRect(0,h*.76,w,h*.14);
+  // Sidewalk edge
+  ctx.fillStyle='#1a1a22'; ctx.fillRect(0,h*.755,w,3);
+
+  // Street lights
+  for(let i=0;i<4;i++){
+    const lx=w*(.15+i*.25);
+    ctx.fillStyle='#2a2a35'; ctx.fillRect(lx-1,h*.5,3,h*.26);
+    // Lamp head
+    ctx.fillStyle='#3a3a45'; ctx.fillRect(lx-8,h*.5,18,4);
+    // Light bulb glow
+    const lg=ctx.createRadialGradient(lx,h*.76,5,lx,h*.76,100);
+    lg.addColorStop(0,'rgba(255,200,120,0.08)'); lg.addColorStop(.5,'rgba(255,180,80,0.03)'); lg.addColorStop(1,'transparent');
+    ctx.fillStyle=lg; ctx.fillRect(lx-100,h*.5,200,h*.4);
+  }
+
+  // Wet ground reflections
+  ctx.globalAlpha=0.03;
+  ctx.scale(1,-1); ctx.translate(0,-h*1.52);
+  for(let i=0;i<near.length;i++){
+    const bx=i*(w/near.length),bw=w/near.length+1;
+    ctx.fillStyle='#ff8'; ctx.fillRect(bx,h*.65,bw,20);
+  }
+  ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1;
+}
+
+function drawFountain(t) {
+  const w=canvas.width, h=canvas.height;
+  drawNightCity(t);
+
+  // Fountain - larger and centered
+  const fx=w/2, fy=h*.72;
+
+  // Pool (elliptical)
+  ctx.fillStyle='#1a2a3a';
+  ctx.beginPath(); ctx.ellipse(fx,fy+8,70,18,0,0,Math.PI*2); ctx.fill();
+  // Water in pool
+  const wg=ctx.createRadialGradient(fx,fy+5,5,fx,fy+5,65);
+  wg.addColorStop(0,'rgba(80,140,200,0.3)'); wg.addColorStop(1,'rgba(40,80,140,0.1)');
+  ctx.fillStyle=wg; ctx.beginPath(); ctx.ellipse(fx,fy+5,60,14,0,0,Math.PI*2); ctx.fill();
+
+  // Fountain pillar
+  ctx.fillStyle='#4a4a5a'; ctx.fillRect(fx-6,fy-45,12,50);
+  ctx.fillStyle='#5a5a6a'; ctx.fillRect(fx-10,fy-8,20,8);
+  ctx.fillStyle='#555568'; ctx.fillRect(fx-4,fy-48,8,5);
+
+  // Water streams (animated arcs)
+  for(let i=0;i<20;i++){
+    const angle=t*.003+i*0.32;
+    const spread=25+Math.sin(t*.002)*5;
+    const px=fx+Math.sin(angle)*spread;
+    const py=fy-45+Math.abs(Math.sin(angle*1.5))*(-15)+((angle*5)%40);
+    const alpha=.3+Math.sin(t*.005+i)*.2;
+    ctx.fillStyle=`rgba(120,180,240,${alpha})`;
+    ctx.beginPath(); ctx.arc(px,py,2,0,Math.PI*2); ctx.fill();
+  }
+  // Water drops falling
+  for(let i=0;i<15;i++){
+    const dx=fx+Math.sin(i*2.4)*40;
+    const dy=fy-20+((t*.08+i*17)%35);
+    ctx.fillStyle='rgba(150,200,255,0.4)';
+    ctx.beginPath(); ctx.arc(dx,dy,1.5,0,Math.PI*2); ctx.fill();
+  }
+
+  // Fountain light glow
+  const fg=ctx.createRadialGradient(fx,fy-20,5,fx,fy-20,120);
+  fg.addColorStop(0,'rgba(100,160,230,0.06)'); fg.addColorStop(1,'transparent');
+  ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(fx,fy-20,120,0,Math.PI*2); ctx.fill();
+}
+
+function drawPub(t) {
+  const w=canvas.width, h=canvas.height;
+
+  // Warm background gradient
+  const bg=ctx.createRadialGradient(w*.5,h*.3,50,w*.5,h*.5,w*.6);
+  bg.addColorStop(0,'#2a1a0e'); bg.addColorStop(.5,'#1a1008'); bg.addColorStop(1,'#0e0a05');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+
+  // Ceiling with wooden planks
+  const cg=ctx.createLinearGradient(0,0,0,h*.12);
+  cg.addColorStop(0,'#1a1008'); cg.addColorStop(1,'#2a1a0e');
+  ctx.fillStyle=cg; ctx.fillRect(0,0,w,h*.12);
+  for(let x=0;x<w;x+=w/8){ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(x,0,2,h*.12);}
+
+  // Back wall
+  const wg=ctx.createLinearGradient(0,h*.12,0,h*.55);
+  wg.addColorStop(0,'#1e1208'); wg.addColorStop(1,'#181006');
+  ctx.fillStyle=wg; ctx.fillRect(0,h*.12,w,h*.43);
+
+  // Banknotes on wall (smoother)
+  for(let i=0;i<50;i++){
+    const bx=((i*97)%w), by=h*.14+((i*67)%(h*.38));
+    const rot=Math.sin(i*3.7)*0.3;
+    ctx.save(); ctx.translate(bx,by); ctx.rotate(rot);
+    ctx.fillStyle=`rgba(${160+((i*37)%80)},${150+((i*53)%80)},${100+((i*29)%60)},0.12)`;
+    ctx.fillRect(-8,-3,16,6);
+    ctx.restore();
+  }
+
+  // Warm ceiling lights
+  for(let i=0;i<3;i++){
+    const lx=w*(.25+i*.25);
+    const lg=ctx.createRadialGradient(lx,h*.12,3,lx,h*.3,180);
+    lg.addColorStop(0,'rgba(255,180,80,0.12)'); lg.addColorStop(.3,'rgba(255,150,50,0.04)'); lg.addColorStop(1,'transparent');
+    ctx.fillStyle=lg; ctx.fillRect(0,0,w,h*.6);
+    // Light fixture
+    ctx.fillStyle='#4a3520'; ctx.fillRect(lx-6,h*.1,12,8);
+    ctx.fillStyle='rgba(255,200,100,0.6)';
+    ctx.beginPath(); ctx.arc(lx,h*.12,4,0,Math.PI*2); ctx.fill();
+  }
+
+  // Bar counter (wood grain)
+  const bar=ctx.createLinearGradient(0,h*.62,0,h*.67);
+  bar.addColorStop(0,'#4a3018'); bar.addColorStop(.5,'#3a2410'); bar.addColorStop(1,'#2a1808');
+  ctx.fillStyle=bar; ctx.fillRect(0,h*.62,w,h*.05);
+  // Counter edge highlight
+  ctx.fillStyle='rgba(255,200,120,0.08)'; ctx.fillRect(0,h*.62,w,2);
+
+  // Below counter
+  ctx.fillStyle='#120e08'; ctx.fillRect(0,h*.67,w,h*.33);
+
+  // Beer glasses (larger, with detail)
+  for(let i=0;i<2;i++){
+    const gx=w/2-40+i*60, gy=h*.55;
+    // Glass
+    ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx,gy,18,25);
+    // Beer
+    const beer=ctx.createLinearGradient(gx,gy+3,gx,gy+22);
+    beer.addColorStop(0,'#c49030'); beer.addColorStop(1,'#a07020');
+    ctx.fillStyle=beer; ctx.fillRect(gx+2,gy+3,14,19);
+    // Foam
+    ctx.fillStyle='#f0e8d0'; ctx.fillRect(gx+1,gy+1,16,5);
+    ctx.fillStyle='rgba(255,255,240,0.5)';
+    ctx.beginPath(); ctx.arc(gx+5,gy+2,3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(gx+12,gy+3,3,0,Math.PI*2); ctx.fill();
+    // Handle
+    ctx.fillStyle='rgba(200,180,100,0.15)'; ctx.fillRect(gx+16,gy+5,5,12);
+  }
+
+  // Floor
+  ctx.fillStyle='#0e0a06'; ctx.fillRect(0,h*.85,w,h*.15);
+}
+
+function drawSteppe(t) {
+  const w=canvas.width, h=canvas.height;
+
+  // Beautiful night sky gradient
+  const sky=ctx.createLinearGradient(0,0,0,h*.62);
+  sky.addColorStop(0,'#050510'); sky.addColorStop(.3,'#0a0a20'); sky.addColorStop(.6,'#10102e'); sky.addColorStop(1,'#1a1840');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h*.65);
+  drawStars(t);
+
+  // Milky way suggestion
+  ctx.globalAlpha=0.03;
+  ctx.fillStyle='#8888cc';
+  ctx.beginPath(); ctx.ellipse(w*.6,h*.15,w*.4,h*.08,-.3,0,Math.PI*2); ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Moon with glow
+  const mx=w*.82,my=h*.1;
+  const mg=ctx.createRadialGradient(mx,my,15,mx,my,80);
+  mg.addColorStop(0,'rgba(240,230,210,0.2)'); mg.addColorStop(1,'transparent');
+  ctx.fillStyle=mg; ctx.beginPath(); ctx.arc(mx,my,80,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#e8dcc8'; ctx.beginPath(); ctx.arc(mx,my,18,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#d0c4b0'; ctx.beginPath(); ctx.arc(mx-3,my+2,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#c8bca8'; ctx.beginPath(); ctx.arc(mx+7,my-5,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#050510'; ctx.beginPath(); ctx.arc(mx+8,my-4,16,0,Math.PI*2); ctx.fill();
+
+  // Distant mountains
+  const gy=h*.62;
+  ctx.fillStyle='#12122a';
+  ctx.beginPath(); ctx.moveTo(0,gy);
+  for(let x=0;x<=w;x+=3) ctx.lineTo(x,gy-20-Math.sin(x*.003)*30-Math.sin(x*.007+2)*15);
+  ctx.lineTo(w,gy); ctx.fill();
+
+  // Steppe ground with gradient
+  const gg=ctx.createLinearGradient(0,gy,0,h);
+  gg.addColorStop(0,'#2a3a1a'); gg.addColorStop(.2,'#223014'); gg.addColorStop(.5,'#1a2610'); gg.addColorStop(1,'#0f1a08');
+  ctx.fillStyle=gg; ctx.fillRect(0,gy,w,h-gy);
+
+  // Rolling hills
+  for(let layer=0;layer<3;layer++){
+    const off=layer*1.5, amp=12+layer*8, col=`rgba(${30-layer*5},${50-layer*8},${20-layer*5},0.5)`;
+    ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,gy+15+layer*10);
+    for(let x=0;x<=w;x+=3) ctx.lineTo(x,gy+15+layer*10+Math.sin(x*.005+off)*amp+Math.sin(x*.002+off*2)*amp*.5);
+    ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.fill();
+  }
+
+  // Road (perspective)
+  const rg=ctx.createLinearGradient(0,gy+30,0,h);
+  rg.addColorStop(0,'#1a1a20'); rg.addColorStop(1,'#222228');
+  ctx.fillStyle=rg;
+  ctx.beginPath(); ctx.moveTo(w*.43,gy+30); ctx.lineTo(w*.57,gy+30);
+  ctx.lineTo(w*.75,h); ctx.lineTo(w*.25,h); ctx.fill();
+  // Road edges
+  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(w*.43,gy+30); ctx.lineTo(w*.25,h); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(w*.57,gy+30); ctx.lineTo(w*.75,h); ctx.stroke();
+  // Center dashes (animated)
+  ctx.fillStyle='#f4a261';
+  for(let i=0;i<10;i++){
+    const r=(i+(t*.0003%1))/10;
+    const dy=gy+35+r*(h-gy-35);
+    const dw=2+r*12;
+    const dh=1+r*4;
+    ctx.globalAlpha=.2+r*.6;
+    ctx.fillRect(w/2-dw/2,dy,dw,dh);
+  }
+  ctx.globalAlpha=1;
+
+  // Atmospheric haze at horizon
+  const haze=ctx.createLinearGradient(0,gy-10,0,gy+30);
+  haze.addColorStop(0,'transparent'); haze.addColorStop(1,'rgba(15,15,30,0.3)');
+  ctx.fillStyle=haze; ctx.fillRect(0,gy-10,w,40);
+}
+
+function drawRainScene(t) {
+  const w=canvas.width, h=canvas.height;
+  // Dark moody gradient
+  const sky=ctx.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,'#060610'); sky.addColorStop(.5,'#080814'); sky.addColorStop(1,'#0a0a12');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
+
+  // Distant city silhouettes with gradient
+  for(let i=0;i<15;i++){
+    const bx=i*(w/15),bw=w/15+1,bh=h*(.12+Math.sin(i*1.7+.5)*.08);
+    const bg=ctx.createLinearGradient(bx,h*.6-bh,bx,h*.6);
+    bg.addColorStop(0,'#0e0e18'); bg.addColorStop(1,'#0a0a12');
+    ctx.fillStyle=bg; ctx.fillRect(bx,h*.6-bh,bw,bh+h*.4);
+    // Faint windows
+    for(let wy=h*.6-bh+10;wy<h*.58;wy+=14){
+      for(let wx=bx+5;wx<bx+bw-5;wx+=10){
+        if(Math.sin(i*4+wx*.1+wy*.1)>.5){
+          ctx.fillStyle='rgba(255,200,100,0.06)'; ctx.fillRect(wx,wy,4,5);
+        }
+      }
+    }
+  }
+
+  // Wet ground
+  const gnd=ctx.createLinearGradient(0,h*.72,0,h);
+  gnd.addColorStop(0,'#0a0a14'); gnd.addColorStop(1,'#060610');
+  ctx.fillStyle=gnd; ctx.fillRect(0,h*.72,w,h*.28);
+
+  // Puddle reflections
+  for(let i=0;i<5;i++){
+    const px=w*(.1+i*.2+Math.sin(i*2)*.05), pw=40+i*10;
+    const pg=ctx.createRadialGradient(px,h*.82,2,px,h*.82,pw);
+    pg.addColorStop(0,'rgba(80,100,150,0.06)'); pg.addColorStop(1,'transparent');
+    ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(px,h*.82,pw,8,0,0,Math.PI*2); ctx.fill();
+  }
+
+  // Rain (smooth, varied)
+  for(let i=0;i<120;i++){
+    const rx=(i*47+t*.3)%w;
+    const ry=((t*.6+i*73)%h);
+    const len=8+Math.random()*8;
+    const alpha=.05+Math.random()*.1;
+    ctx.strokeStyle=`rgba(150,180,220,${alpha})`; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(rx+.5,ry+len); ctx.stroke();
+  }
+
+  // Fog layer
+  const fog=ctx.createLinearGradient(0,h*.5,0,h*.8);
+  fog.addColorStop(0,'transparent'); fog.addColorStop(.5,'rgba(10,10,20,0.2)'); fog.addColorStop(1,'transparent');
+  ctx.fillStyle=fog; ctx.fillRect(0,h*.5,w,h*.3);
+}
+
+function drawDarkRoom(t) {
+  const w=canvas.width, h=canvas.height;
+  // Very dark room
+  ctx.fillStyle='#040406'; ctx.fillRect(0,0,w,h);
+
+  // Window (larger, more detailed)
+  const wx=w*.62, wy=h*.15, ww=120, wh=90;
+  // Window frame
+  ctx.fillStyle='#1a1a22'; ctx.fillRect(wx-4,wy-4,ww+8,wh+8);
+  // Night sky through window
+  const wsky=ctx.createLinearGradient(wx,wy,wx,wy+wh);
+  wsky.addColorStop(0,'#0a0a25'); wsky.addColorStop(1,'#10103a');
+  ctx.fillStyle=wsky; ctx.fillRect(wx,wy,ww,wh);
+  // Stars through window
+  for(let i=0;i<8;i++){
+    ctx.fillStyle=`rgba(200,200,255,${.2+Math.sin(t*.01+i)*.15})`;
+    ctx.fillRect(wx+10+((i*23)%100),wy+8+((i*17)%70),2,2);
+  }
+  // Window cross
+  ctx.fillStyle='#1a1a22'; ctx.fillRect(wx+ww/2-2,wy,4,wh); ctx.fillRect(wx,wy+wh/2-2,ww,4);
+  // Curtains
+  ctx.fillStyle='rgba(20,15,25,0.6)'; ctx.fillRect(wx-10,wy-4,15,wh+8); ctx.fillRect(wx+ww-5,wy-4,15,wh+8);
+
+  // Moonlight beam (soft, volumetric)
+  ctx.save();
+  const beam=ctx.createLinearGradient(wx+ww/2,wy+wh,wx+ww/2-30,h);
+  beam.addColorStop(0,'rgba(80,100,180,0.04)'); beam.addColorStop(1,'transparent');
+  ctx.fillStyle=beam;
+  ctx.beginPath(); ctx.moveTo(wx,wy+wh); ctx.lineTo(wx+ww,wy+wh); ctx.lineTo(wx+ww+60,h); ctx.lineTo(wx-60,h); ctx.fill();
+  ctx.restore();
+
+  // Rain on window (animated drops)
+  for(let i=0;i<25;i++){
+    const rx=wx+8+((i*13)%(ww-16));
+    const ry=wy+5+((t*.2+i*23)%(wh-10));
+    ctx.fillStyle='rgba(130,160,220,0.25)';
+    ctx.beginPath(); ctx.arc(rx,ry,1.5,0,Math.PI*2); ctx.fill();
+    // Streak below drop
+    ctx.fillStyle='rgba(130,160,220,0.08)';
+    ctx.fillRect(rx-.5,ry,1,8+Math.sin(i)*4);
+  }
+
+  // Floor
+  const fl=ctx.createLinearGradient(0,h*.78,0,h);
+  fl.addColorStop(0,'#0a0808'); fl.addColorStop(1,'#060505');
+  ctx.fillStyle=fl; ctx.fillRect(0,h*.78,w,h*.22);
+
+  // Desk
+  const dg=ctx.createLinearGradient(0,h*.64,0,h*.68);
+  dg.addColorStop(0,'#2a1e14'); dg.addColorStop(1,'#1a1410');
+  ctx.fillStyle=dg; ctx.fillRect(w*.28,h*.64,w*.44,6);
+  // Desk legs
+  ctx.fillStyle='#18120e'; ctx.fillRect(w*.32,h*.646,5,h*.14); ctx.fillRect(w*.65,h*.646,5,h*.14);
+
+  // Laptop
+  const lx=w*.44, ly=h*.5;
+  // Screen
+  const scr=ctx.createLinearGradient(lx,ly,lx,ly+h*.14);
+  scr.addColorStop(0,'#1a2a45'); scr.addColorStop(1,'#15203a');
+  ctx.fillStyle=scr; ctx.fillRect(lx,ly,80,h*.14);
+  // Screen border
+  ctx.strokeStyle='#2a2a3a'; ctx.lineWidth=2; ctx.strokeRect(lx,ly,80,h*.14);
+  // Screen glow
+  const sg=ctx.createRadialGradient(lx+40,ly+h*.07,10,lx+40,ly+h*.07,150);
+  sg.addColorStop(0,'rgba(40,60,100,0.08)'); sg.addColorStop(1,'transparent');
+  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(lx+40,ly+h*.07,150,0,Math.PI*2); ctx.fill();
+  // Code lines on screen
+  for(let i=0;i<6;i++){
+    const cw=20+Math.sin(i*2.3)*15;
+    ctx.fillStyle='rgba(100,200,150,0.15)'; ctx.fillRect(lx+8,ly+10+i*10,cw,3);
+  }
+  // Keyboard
+  ctx.fillStyle='#1a1a25'; ctx.fillRect(lx-5,ly+h*.14,90,6);
+
+  // Coffee mug
+  ctx.fillStyle='#2a2020'; ctx.fillRect(lx+90,h*.6,12,15);
+  ctx.fillStyle='rgba(80,50,30,0.3)'; ctx.fillRect(lx+92,h*.6+2,8,5);
+  // Steam
+  for(let i=0;i<3;i++){
+    const sx=lx+95+Math.sin(t*.003+i*2)*3;
+    const sy=h*.58-i*6;
+    ctx.fillStyle=`rgba(150,150,180,${.03-i*.008})`;
+    ctx.beginPath(); ctx.arc(sx,sy,3+i,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function drawHeartsBg(t) {
+  drawStars(t);
+  // Soft pink ambient glow
+  const pg=ctx.createRadialGradient(canvas.width*.5,canvas.height*.4,50,canvas.width*.5,canvas.height*.4,canvas.width*.5);
+  pg.addColorStop(0,'rgba(229,49,112,0.04)'); pg.addColorStop(1,'transparent');
+  ctx.fillStyle=pg; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Floating hearts (smooth)
+  for(let i=0;i<20;i++){
+    const x=(i*137.5+t*.015)%canvas.width;
+    const y=(canvas.height-((t*.025+i*89)%canvas.height));
+    const size=8+Math.sin(i*1.7)*4;
+    const alpha=.06+.08*Math.sin(t*.002+i);
+    drawHeart(x,y,size,`rgba(229,49,112,${alpha})`);
+  }
+}
+
+function drawHeart(x,y,size,color) {
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x,y+size*.3);
+  ctx.bezierCurveTo(x,y,x-size,y,x-size,y+size*.3);
+  ctx.bezierCurveTo(x-size,y+size*.6,x,y+size*.8,x,y+size);
+  ctx.bezierCurveTo(x,y+size*.8,x+size,y+size*.6,x+size,y+size*.3);
+  ctx.bezierCurveTo(x+size,y,x,y,x,y+size*.3);
+  ctx.fill();
+}
+
+// ---- BACKGROUND RENDERER ----
+let bgMode='stars', bgTime=0;
+let charAnimations = []; // {type, x, y, scale, frame, flip, speed}
+
+function renderBg() {
+  bgTime += 16;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#0a0a12'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  if (bgMode==='stars') drawStars(bgTime);
+  else if (bgMode==='city') drawNightCity(bgTime);
+  else if (bgMode==='fountain') drawFountain(bgTime);
+  else if (bgMode==='pub') drawPub(bgTime);
+  else if (bgMode==='steppe') drawSteppe(bgTime);
+  else if (bgMode==='rain') drawRainScene(bgTime);
+  else if (bgMode==='darkroom') drawDarkRoom(bgTime);
+  else if (bgMode==='hearts') { drawStars(bgTime); drawHeartsBg(bgTime); }
+  else if (bgMode==='walk') drawWalkScene();
+
+  // Draw animated characters
+  for (const ch of charAnimations) {
+    ch.frame = (ch.frame||0) + (ch.speed||0);
+    if (ch.type==='amaraa') drawAmaraa(ch.x, ch.y, ch.scale||3, Math.floor(ch.frame), ch.flip);
+    if (ch.type==='maagii') drawMaagii(ch.x, ch.y, ch.scale||3, Math.floor(ch.frame), ch.flip);
+  }
+
+  requestAnimationFrame(renderBg);
+}
+renderBg();
+
+// ---- INTERACTIVE WALK ENGINE ----
+let walkActive = false, walkX = 0, walkTarget = 3000, walkFrame = 0, walkDir = 0;
+let walkMaagiiX = 2800;
+let walkReached = false, walkResolve = null;
+
+function drawWalkScene() {
+  const w=canvas.width, h=canvas.height;
+  const progress = Math.min(walkX / walkTarget, 1);
+
+  // Sky transitions from dark storm to warm dawn
+  const sky=ctx.createLinearGradient(0,0,0,h*.7);
+  const darkR=6+progress*30, darkG=6+progress*15, darkB=16+progress*20;
+  const midR=10+progress*60, midG=10+progress*30, midB=20+progress*30;
+  sky.addColorStop(0,`rgb(${darkR|0},${darkG|0},${darkB|0})`);
+  sky.addColorStop(1,`rgb(${midR|0},${midG|0},${midB|0})`);
+  ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
+
+  // Stars fade
+  if(progress<.6){ctx.globalAlpha=1-progress*1.6;drawStars(bgTime);ctx.globalAlpha=1;}
+
+  // Dawn glow (warm pink/orange on right)
+  if(progress>.3){
+    const ga=(progress-.3)*.2;
+    const dg=ctx.createRadialGradient(w*.85,h*.35,20,w*.85,h*.35,w*.4);
+    dg.addColorStop(0,`rgba(229,80,80,${ga})`);
+    dg.addColorStop(.5,`rgba(229,49,112,${ga*.3})`);
+    dg.addColorStop(1,'transparent');
+    ctx.fillStyle=dg; ctx.fillRect(0,0,w,h);
+  }
+
+  // Ground
+  const groundY=h*.72;
+  const gg=ctx.createLinearGradient(0,groundY,0,h);
+  gg.addColorStop(0,`rgb(${15+progress*20|0},${20+progress*15|0},${10+progress*8|0})`);
+  gg.addColorStop(1,`rgb(${8+progress*12|0},${12+progress*10|0},${5+progress*5|0})`);
+  ctx.fillStyle=gg; ctx.fillRect(0,groundY,w,h-groundY);
+
+  const scrollX=-walkX*.5;
+
+  // Parallax trees/poles (far)
+  for(let i=0;i<15;i++){
+    const tx=((i*250+scrollX*.2)%(w+500))-250;
+    const th=35+((i*17)%25);
+    ctx.fillStyle=`rgba(${15+progress*15|0},${25+progress*10|0},${12+progress*8|0},0.7)`;
+    ctx.fillRect(tx,groundY-th,3,th);
+    // Branches
+    ctx.fillStyle=`rgba(${20+progress*15|0},${35+progress*12|0},${18+progress*8|0},0.5)`;
+    ctx.beginPath();ctx.arc(tx+1,groundY-th,10+i%5,0,Math.PI*2);ctx.fill();
+  }
+
+  // Rain (fades with progress)
+  if(progress<.5){
+    const rAlpha=.08*(1-progress*2);
+    for(let i=0;i<80;i++){
+      const rx=(i*47+bgTime*.3)%w;
+      const ry=((bgTime*.5+i*73)%h);
+      ctx.strokeStyle=`rgba(150,180,220,${rAlpha})`;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx+.5,ry+10);ctx.stroke();
+    }
+  }
+
+  // Road
+  ctx.fillStyle=`rgba(${14+progress*8|0},${14+progress*6|0},${18+progress*5|0},1)`;
+  ctx.fillRect(0,groundY+12,w,22);
+  ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(0,groundY+12,w,1);
+  // Dashes
+  for(let i=0;i<30;i++){
+    const dx=((i*60+scrollX)%(w+100))-50;
+    ctx.fillStyle=`rgba(100,100,100,${.1+progress*.1})`;
+    ctx.fillRect(dx,groundY+21,20,2);
+  }
+
+  // Maagii ahead with warm glow
+  const msx=w*.5+(walkMaagiiX-walkX)*.5;
+  if(msx<w+200){
+    const dist=Math.max(1,(msx-w*.35)/w);
+    // Her warm glow grows as you approach
+    const ga=Math.max(0,.2-dist*.15);
+    const glow=ctx.createRadialGradient(msx,groundY-5,5,msx,groundY-5,120/dist);
+    glow.addColorStop(0,`rgba(229,49,112,${ga})`);
+    glow.addColorStop(.5,`rgba(255,150,100,${ga*.3})`);
+    glow.addColorStop(1,'transparent');
+    ctx.fillStyle=glow; ctx.fillRect(msx-200,groundY-200,400,300);
+    if(msx<w+50) drawMaagii(msx,groundY+5,5,Math.floor(bgTime*.002),false);
+  }
+
+  // Amartuvshin
+  const asx=w*.35;
+  walkFrame+=walkDir!==0?.15:0;
+  drawAmaraa(asx,groundY+5,5,Math.floor(walkFrame),walkDir<0);
+
+  // Distance text
+  const km=Math.max(0,Math.round((walkMaagiiX-walkX)/10));
+  if(km>0){
+    ctx.fillStyle='rgba(229,49,112,0.8)';
+    ctx.font="14px 'Press Start 2P'";ctx.textAlign='center';
+    ctx.fillText(km+' km to Maagii',w/2,h*.1);
+    ctx.fillStyle='rgba(229,49,112,0.15)';
+    ctx.fillText(km+' km to Maagii',w/2,h*.1);
+  }
+  ctx.textAlign='left';
+}
+
+function startWalk() {
+  return new Promise(resolve => {
+    walkActive = true; walkX = 0; walkReached = false; walkResolve = resolve;
+    bgMode = 'walk';
+  });
+}
+
+function updateWalk() {
+  if (!walkActive) return;
+  if (walkDir !== 0) {
+    walkX += walkDir * 4;
+    walkX = Math.max(0, walkX);
+  }
+  if (walkX >= walkMaagiiX - 50 && !walkReached) {
+    walkReached = true;
+    walkActive = false;
+    walkDir = 0;
+    setTimeout(() => {
+      spawnHearts(15);
+      setTimeout(() => { if (walkResolve) walkResolve(); }, 2000);
+    }, 500);
+  }
+}
+setInterval(updateWalk, 16);
+
+// Key/touch controls for walk
+document.addEventListener('keydown', e => {
+  if (!walkActive) return;
+  if (e.key === 'ArrowRight' || e.key === 'd') walkDir = 1;
+  if (e.key === 'ArrowLeft' || e.key === 'a') walkDir = -1;
+});
+document.addEventListener('keyup', e => {
+  if (!walkActive) return;
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'ArrowLeft' || e.key === 'a') walkDir = 0;
+});
+// Touch: tap right half = go right, left half = go left
+let touchWalking = false;
+document.addEventListener('touchstart', e => {
+  if (!walkActive) return;
+  e.preventDefault();
+  const x = e.touches[0].clientX;
+  walkDir = x > window.innerWidth / 2 ? 1 : -1;
+  touchWalking = true;
+}, {passive:false});
+document.addEventListener('touchend', () => {
+  if (touchWalking) { walkDir = 0; touchWalking = false; }
+});
+
+// ---- TYPEWRITER ----
+function typeWriter(el, text, speed=35) {
+  return new Promise(resolve => {
+    const parsed = text.replace(/\{h\}(.*?)\{\/h\}/g,'<span class="highlight">$1</span>')
+      .replace(/\{g\}(.*?)\{\/g\}/g,'<span class="gold">$1</span>')
+      .replace(/\{gr\}(.*?)\{\/gr\}/g,'<span class="green">$1</span>');
+    const stripped = parsed.replace(/<[^>]*>/g,'');
+    let ci = 0;
+    function type() {
+      if (ci <= stripped.length) {
+        let display='', ri=0, inTag=false;
+        for (let j=0;j<parsed.length&&ri<=ci;j++) {
+          if (parsed[j]==='<') { inTag=true; display+=parsed[j]; }
+          else if (parsed[j]==='>') { inTag=false; display+=parsed[j]; }
+          else if (inTag) display+=parsed[j];
+          else { if (ri<ci) display+=parsed[j]; ri++; }
+        }
+        const ot=(display.match(/<span[^>]*>/g)||[]).length;
+        const ct=(display.match(/<\/span>/g)||[]).length;
+        for(let t=0;t<ot-ct;t++) display+='</span>';
+        el.innerHTML=display+'<span style="animation:blink .5s infinite">_</span>';
+        ci++; setTimeout(type,speed);
+      } else { el.innerHTML=parsed; resolve(); }
+    }
+    type();
+  });
+}
+
+// ---- SCENE ENGINE ----
+const scenes=[]; let currentScene=-1, currentDI=0, isTransitioning=false, canAdvance=true;
+
+function createSceneEl(id) { const d=document.createElement('div'); d.className='scene'; d.id=id; game.appendChild(d); return d; }
+
+async function showScene(i) {
+  if (isTransitioning) return;
+  isTransitioning=true;
+  const cur=game.querySelector('.scene.active');
+  if(cur){cur.classList.remove('active');await sleep(800);}
+  currentScene=i; currentDI=0;
+  charAnimations=[];
+  const sc=scenes[i];
+  if(sc.bg) bgMode=sc.bg;
+  if(sc.onEnter) await sc.onEnter();
+  const el=document.getElementById(sc.id);
+  if(el) {el.classList.add('active');await sleep(400);}
+  if(sc.dialogues&&sc.dialogues.length>0) await showDlg(sc,0);
+  isTransitioning=false;
+}
+
+async function showDlg(sc,idx) {
+  if(idx>=sc.dialogues.length){if(sc.onComplete)await sc.onComplete();return;}
+  currentDI=idx;
+  const d=sc.dialogues[idx], el=document.getElementById(sc.id);
+  if(d.action==='showPhoto'){showPhoto(d.photo,d.caption);await sleep(300);}
+  if(d.action==='hidePhoto'){hidePhoto();await sleep(300);}
+  if(d.action==='showVisa'){showVisaStamp(el);await sleep(1500);}
+  if(d.action==='showKm'){await showKmCounter(el);}
+  if(d.action==='wait'){await sleep(d.duration||2000);advanceDlg();return;}
+  if(d.action==='changeBg'){bgMode=d.bg;}
+  if(d.action==='addChar'){charAnimations.push(d.char);}
+  if(d.action==='clearChars'){charAnimations=[];}
+  if(d.action==='moveChars'&&d.fn){await d.fn();}
+  if(d.action==='walk'){
+    const walkEl=document.getElementById(sc.id);
+    const inst=walkEl.querySelector('.walk-instructions');
+    if(inst)inst.style.opacity='1';
+    await startWalk();
+    if(inst)inst.style.opacity='0';
+    advanceDlg();return;
+  }
+  if(d.text){
+    const te=el.querySelector('.dialogue-text');
+    if(te){
+      const sp=el.querySelector('.speaker-name');
+      if(sp) sp.textContent=d.speaker||'';
+      canAdvance=false;
+      await typeWriter(te,d.text,d.speed||35);
+      canAdvance=true;
+    }
+  }
+}
+
+function advanceDlg() {
+  if(isTransitioning||!canAdvance)return;
+  const sc=scenes[currentScene];
+  if(!sc||!sc.dialogues)return;
+  const ni=currentDI+1;
+  if(ni>=sc.dialogues.length){if(currentScene+1<scenes.length)showScene(currentScene+1);}
+  else showDlg(sc,ni);
+}
+
+// ---- PHOTO SYSTEM ----
+let photoCont=null;
+function createPhotoSys(){photoCont=document.createElement('div');photoCont.className='photo-container';photoCont.innerHTML='<div class="photo-frame"><img id="photoImg" src="" alt=""></div><div class="photo-caption" id="photoCaption"></div>';game.appendChild(photoCont);}
+createPhotoSys();
+function showPhoto(s,c){$('#photoImg').src='photos/'+s;$('#photoCaption').textContent=c||'';photoCont.classList.add('visible');}
+function hidePhoto(){photoCont.classList.remove('visible');}
+
+// ---- VISA STAMP ----
+function showVisaStamp(p){const s=document.createElement('div');s.className='visa-stamp';s.textContent='DENIED';s.style.opacity='0';p.appendChild(s);setTimeout(()=>{s.style.opacity='1';p.style.animation='shake .3s';if(audioCtx){playNote(110,.5,audioCtx.currentTime,'sawtooth',.1);playNote(80,.8,audioCtx.currentTime+.1,'sawtooth',.08);}setTimeout(()=>p.style.animation='',300);},100);setTimeout(()=>{s.style.transition='opacity 2s';s.style.opacity='0';setTimeout(()=>s.remove(),2000);},3000);}
+
+// ---- KM COUNTER ----
+function showKmCounter(p){return new Promise(r=>{const c=document.createElement('div');c.className='km-counter';c.textContent='0 km';p.appendChild(c);c.style.opacity='1';let k=0;const iv=setInterval(()=>{k+=Math.ceil((500-k)*.05)+1;if(k>=500){k=500;clearInterval(iv);c.textContent='500 km';setTimeout(()=>{c.style.transition='opacity 1.5s';c.style.opacity='0';setTimeout(()=>{c.remove();r();},1500);},1500);}c.textContent=k+' km';},50);});}
+
+// ---- HEARTS ----
+function spawnHearts(n=20){for(let i=0;i<n;i++){setTimeout(()=>{const h=document.createElement('div');h.className='floating-heart';h.textContent='♥';h.style.left=Math.random()*100+'vw';h.style.bottom='-20px';h.style.fontSize=(12+Math.random()*24)+'px';h.style.color=`hsl(${340+Math.random()*30},80%,${50+Math.random()*20}%)`;game.appendChild(h);const d=3000+Math.random()*4000;h.animate([{transform:'translateY(0) rotate(0deg)',opacity:.8},{transform:`translateY(-${window.innerHeight+50}px) rotate(${Math.random()*360}deg)`,opacity:0}],{duration:d,easing:'ease-out'});setTimeout(()=>h.remove(),d);},i*200);}}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ==========================================
+// SCENE DEFINITIONS
+// ==========================================
+
+// Helper for standard dialogue scene
+function dialogueSceneHTML(chNum, chTitle) {
+  return `
+    ${chNum ? `<div class="chapter-title"><div class="chapter-num">CHAPTER ${chNum}</div><h2>${chTitle}</h2></div>` : ''}
+    <div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">▼</div></div></div>
+  `;
+}
+
+async function showChapterTitle(el, delay=2500) {
+  const ct = el.querySelector('.chapter-title');
+  if (!ct) return;
+  el.classList.add('active');
+  await sleep(300);
+  ct.style.opacity = '1';
+  await sleep(delay);
+  ct.style.transition = 'opacity 1s ease';
+  ct.style.opacity = '0';
+  await sleep(1000);
+}
+
+// --- BOOT ---
+scenes.push({id:'boot',bg:'stars',dialogues:[],onEnter:async()=>{
+  const el=createSceneEl('boot');
+  el.innerHTML='<div class="boot-text" id="bootText"></div>';
+  el.classList.add('active');
+  const lines=['> SYSTEM BOOT...','> LOADING MEMORIES.............. OK','> INITIALIZING HEART........... OK','> SCANNING FOR: MAAGII','> STATUS: <span class="highlight">ALWAYS CONNECTED</span>','> DISTANCE: 2,714 km','> LOVE LEVEL: ████████████ MAX','> ','> LAUNCHING: 500km_to_you.exe'];
+  const bt=$('#bootText');
+  for(const l of lines){const s=document.createElement('span');s.className='boot-line';bt.appendChild(s);s.innerHTML=l;await sleep(80);s.style.opacity='1';s.style.animation='fadeIn .3s';if(audioCtx)playNote(800+Math.random()*400,.05,audioCtx.currentTime,'square',.03);await sleep(300);}
+  await sleep(1500);el.classList.remove('active');await sleep(800);el.remove();
+  isTransitioning=false;showScene(1);
+}});
+
+// --- TITLE ---
+scenes.push({id:'title',bg:'stars',dialogues:[],onEnter:async()=>{
+  const el=createSceneEl('title');
+  el.innerHTML='<div class="pixel-heart">♥</div><h1>500km<br>to You</h1><div class="subtitle">A Love Story</div><div class="start-prompt" id="startPrompt">[ Click anywhere to begin ]</div>';
+  el.classList.add('active');
+  // Show characters on title screen
+  const w=canvas.width, h=canvas.height;
+  charAnimations=[
+    {type:'amaraa',x:w*0.35,y:h*0.82,scale:6,frame:0,speed:0},
+    {type:'maagii',x:w*0.65,y:h*0.82,scale:6,frame:0,speed:0}
+  ];
+  await sleep(2500);$('#startPrompt').style.opacity='1';$('#musicBtn').style.display='block';
+  await new Promise(r=>{const h=()=>{document.removeEventListener('click',h);initAudio();startMusic();r();};document.addEventListener('click',h);});
+  charAnimations=[];
+  el.classList.remove('active');await sleep(800);el.remove();
+  isTransitioning=false;showScene(2);
+}});
+
+// --- CH1: THE SWIPE ---
+scenes.push({id:'ch1',bg:'stars',dialogues:[
+  {action:'wait',duration:3000},
+  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.5,y:canvas.height*0.55,scale:5,frame:0,speed:0}},
+  {text:"It started with a {h}swipe{/h}.",speed:45},
+  {text:"Just one. To the right.",speed:40},
+  {text:"Out of all the faces, all the profiles...\nthe algorithm chose {h}you{/h}.",speed:35},
+  {text:"{g}IT'S A MATCH{/g}",speed:80},
+  {text:"And just like that,\nmy whole life changed direction.",speed:35},
+],onEnter:async()=>{
+  const el=createSceneEl('ch1');
+  el.innerHTML=dialogueSceneHTML('I','The Swipe');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- CH2: THE FOUNTAIN ---
+scenes.push({id:'ch2',bg:'fountain',dialogues:[
+  {action:'wait',duration:2500},
+  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.25,y:canvas.height*0.72,scale:5,frame:0,speed:0.08}},
+  {text:"We agreed to meet at the {g}fountain{/g}.",speed:35},
+  {text:"I walked there.\nTrying to look cool. Calm.",speed:35},
+  {text:"My heart was beating\nlike it wanted to escape my chest.",speed:30},
+  {action:'addChar',char:{type:'maagii',x:canvas.width*0.75,y:canvas.height*0.72,scale:5,frame:0,speed:0.08,flip:true}},
+  {text:"Then I saw you.",speed:50},
+  {text:"Standing there,\nmore beautiful than any photo could show.",speed:30},
+  {action:'moveChars',fn:async()=>{
+    // Walk toward each other
+    const a=charAnimations.find(c=>c.type==='amaraa');
+    const m=charAnimations.find(c=>c.type==='maagii');
+    if(a&&m){
+      const targetA=canvas.width*0.45,targetM=canvas.width*0.55;
+      for(let i=0;i<60;i++){
+        a.x+=(targetA-a.x)*0.05; m.x+=(targetM-m.x)*0.05;
+        await sleep(30);
+      }
+    }
+  }},
+  {text:"And I forgot every word\nI had planned to say.",speed:35},
+],onEnter:async()=>{
+  const el=createSceneEl('ch2');
+  el.innerHTML=dialogueSceneHTML('II','The Fountain');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- CH3: DRAFT BEER ---
+scenes.push({id:'ch3',bg:'pub',dialogues:[
+  {action:'wait',duration:3000},
+  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.4,y:canvas.height*0.63,scale:4,frame:0,speed:0}},
+  {action:'addChar',char:{type:'maagii',x:canvas.width*0.6,y:canvas.height*0.63,scale:4,frame:0,speed:0,flip:true}},
+  {text:"We found a pub.\nOrdered {g}draft beer{/g}. Two glasses.",speed:35},
+  {text:"You talked.\nI listened.\nYou laughed.\n{h}I fell.{/h}",speed:40},
+  {text:"I reached across the table\nand took your hands in mine.",speed:35},
+  {text:"I kissed them.\nSoftly. Like they were\nthe most precious thing in the world.",speed:30},
+  {text:"Because they were.",speed:55},
+  {text:"And when you smiled at me...\nyour {h}teeth{/h}, your beautiful teeth...\nthat smile lit up the whole room.",speed:28},
+  {text:"I acted cold on the outside.\nBut inside I was already {h}yours{/h}.",speed:35},
+  {action:'clearChars'},
+  {action:'showPhoto',photo:'maagii_pub.jpg',caption:'— That smile. Those teeth. I was done. —',text:"That smile. Those teeth.\n{h}I was done.{/h}",speed:40},
+  {action:'hidePhoto'},
+],onEnter:async()=>{
+  const el=createSceneEl('ch3');
+  el.innerHTML=dialogueSceneHTML('III','Draft Beer');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- CH4: FALLING ---
+scenes.push({id:'ch4',bg:'hearts',dialogues:[
+  {action:'wait',duration:3000},
+  {text:"Two years.\nI won't lie and say\nit was easy.",speed:35},
+  {text:"It was {h}hard{/h}.\nSo hard sometimes\nI didn't know if we'd survive it.",speed:30},
+  {text:"We fought.\nNot small fights.\n{h}Real{/h} fights.\nThe kind that break things.",speed:28},
+  {text:"You'd say I don't love you.\nThat I only tell you words\nbut never {h}show{/h} it.",speed:28},
+  {text:"You'd say I'm lying.\nThat my actions don't match\nwhat I say.",speed:30},
+  {text:"And every time...\nit tore me apart.\nBecause I didn't know\nhow to {h}prove{/h} it.",speed:28},
+  {text:"I'm not the guy who brings flowers\nor writes long messages.\nI show love {h}differently{/h}.",speed:30},
+  {text:"But you needed more.\nAnd I didn't know how to give it.",speed:35},
+  {text:"We'd break.\nThen come back.\nBreak again.\nCome back again.",speed:30},
+  {text:"Because no matter how hard\nwe fought...\nwe couldn't stay {h}apart{/h}.",speed:30},
+  {action:'showPhoto',photo:'photobooth.jpg',caption:'— Between all the fights, there was this. —',text:"Between all the storms...\nthere was {h}this{/h}.",speed:35},
+  {action:'hidePhoto'},
+  {text:"These moments.\nWhen everything was quiet.\nAnd it was just {h}us{/h}.",speed:30},
+  {text:"Two years of war and peace.\nAnd I'd fight through\nevery second of it again.",speed:30},
+],onEnter:async()=>{
+  const el=createSceneEl('ch4');
+  el.innerHTML=dialogueSceneHTML('IV','Falling');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- CH5: 500KM TO BULGAN ---
+scenes.push({id:'ch5',bg:'steppe',dialogues:[
+  {action:'wait',duration:3000},
+  {action:'showKm'},
+  {text:"{g}500 kilometers{/g}\nthrough the Mongolian steppe.",speed:35},
+  {text:"I told you —\nif we meet my mother,\n{h}we will marry{/h}.",speed:35},
+  {text:"That's why I drove 500km.\nBecause I {h}meant{/h} it.",speed:35},
+  {text:"500 kilometers of open road.\nJust you and me and the stars.",speed:30},
+  {text:"My mother loved you.\nShe saw what I see.",speed:40},
+  {text:"That was the most {h}precious{/h}\nmoment of my life.",speed:35},
+  {text:"And I would drive\n{h}500 more{/h}.",speed:50},
+],onEnter:async()=>{
+  const el=createSceneEl('ch5');
+  el.innerHTML=dialogueSceneHTML('V','500km to Bulgan');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- CH6: THE DISTANCE ---
+scenes.push({id:'ch6',bg:'rain',dialogues:[
+  {action:'wait',duration:3000},
+  {text:"Then you left for {g}Korea{/g}.\nTo study. To grow.",speed:35},
+  {text:"I tried to follow you.",speed:45},
+  {action:'showVisa',text:"My visa...",speed:60},
+  {text:"{h}DENIED.{/h}",speed:100},
+  {text:"The world put an ocean\nbetween us.",speed:35},
+  {text:"We fought.\nI was jealous.\nNot because I don't trust you.",speed:30},
+  {text:"But because I was {h}terrified{/h}\nof losing the only person...",speed:30},
+  {text:"...who ever made me\nfeel {h}everything{/h}.",speed:35},
+  {action:'showPhoto',photo:'maagii_korea.jpg',caption:"— You're there. I'm here. And it hurts. —",text:"You're there.\nI'm here.\nAnd it hurts.",speed:40},
+  {action:'hidePhoto'},
+],onEnter:async()=>{
+  const el=createSceneEl('ch6');
+  el.innerHTML=dialogueSceneHTML('VI','The Distance');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- CH7: THE RING ---
+scenes.push({id:'ch7',bg:'darkroom',dialogues:[
+  {action:'wait',duration:2500},
+  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.35,y:canvas.height*0.72,scale:5,frame:0,speed:0}},
+  {text:"One night, I sat in my room.\nStaring at a small box.",speed:30},
+  {text:"A {h}ring{/h}.",speed:60},
+  {text:"I couldn't fly to you.\nBut I could send my {h}promise{/h}.",speed:30},
+  {text:"I packed it carefully.\nWrote the address in Korea.\nHanded it to the cargo office.",speed:28},
+  {text:"A small box,\ncrossing an ocean,\ncarrying everything I feel.",speed:30},
+  {text:"Every other guy sends flowers.\nI sent you a {h}ring{/h}.\nBecause I don't do things halfway.",speed:30},
+  {text:"I hope when you held it...\nyou felt my hands\naround yours.",speed:35},
+],onEnter:async()=>{
+  const el=createSceneEl('ch7');
+  el.innerHTML=dialogueSceneHTML('VII','The Ring');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- CH8: THE STRUGGLE ---
+scenes.push({id:'ch8',bg:'darkroom',dialogues:[
+  {action:'wait',duration:3000},
+  {action:'addChar',char:{type:'amaraa',x:canvas.width*0.46,y:canvas.height*0.72,scale:5,frame:0,speed:0}},
+  {text:"You don't know what happens\nwhen I put down my phone.",speed:30},
+  {text:"The {h}anxiety{/h} hits.\nMy chest tightens.\nI can't breathe.",speed:28},
+  {text:"I sit alone in my room\nin Ulaanbaatar.\nThe city is loud but I hear {h}nothing{/h}.",speed:28},
+  {text:"I wake up at 3am\nreaching for you.\nBut the bed is {h}empty{/h}.",speed:30},
+  {text:"I check my phone.\n{h}No messages.{/h}\nI don't even know where you are.",speed:28},
+  {text:"So I open my laptop.\nAnd I {g}work{/g}.",speed:40},
+  {text:"Through the pain.\nThrough the tears I'll never admit to.\nThrough the panic attacks.",speed:25},
+  {text:"Every line of code I write,\nevery prompt I craft...\nI do it thinking of {h}us{/h}.",speed:30},
+  {text:"Some days I can barely function.\nBut I {h}keep going{/h}.",speed:35},
+  {text:"Because giving up on my work\nwould mean giving up on\nmy chance to reach you.",speed:30},
+  {text:"You are in Korea,\nliving your dream.\nAnd I am {h}proud{/h} of you.",speed:30},
+  {text:"But God...\nI wish I was there\nwalking beside you.",speed:35},
+],onEnter:async()=>{
+  const el=createSceneEl('ch8');
+  el.innerHTML=dialogueSceneHTML('VIII','The Struggle');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- INTERACTIVE WALK ---
+scenes.push({id:'walkScene',bg:'walk',dialogues:[
+  {action:'wait',duration:1500},
+  {action:'walk'},
+  {action:'changeBg',bg:'hearts'},
+  {action:'clearChars'},
+],onEnter:async()=>{
+  const el=createSceneEl('walkScene');
+  el.innerHTML=`
+    <div class="walk-instructions">
+      Use arrow keys or tap screen<br>
+      to walk to Maagii →
+    </div>
+    <div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">▼</div></div></div>
+  `;
+  walkX=0;walkReached=false;walkActive=false;
+  charAnimations=[];
+  el.classList.add('active');
+  await sleep(500);
+}});
+
+// --- CH9: WHAT I NEVER SAID ---
+scenes.push({id:'ch9',bg:'stars',dialogues:[
+  {action:'wait',duration:2500},
+  {speaker:'AMARTUVSHIN',text:"Maagii...",speed:70},
+  {speaker:'AMARTUVSHIN',text:"Every morning,\nmy first thought is {h}you{/h}.",speed:35},
+  {speaker:'AMARTUVSHIN',text:"Every night,\nI wish you were {h}here{/h}.",speed:35},
+  {speaker:'AMARTUVSHIN',text:"Your warmth.\nYour scent.\nThe way you fit perfectly next to me.",speed:30},
+  {speaker:'AMARTUVSHIN',text:"I {h}can't{/h} see my life\nwithout you.",speed:40},
+  {speaker:'AMARTUVSHIN',text:"You say I only give you {h}words{/h}.\nThat I never show it.\nThat I'm lying.",speed:28},
+  {speaker:'AMARTUVSHIN',text:"So let me show you\nmy {h}actions{/h}.",speed:40},
+  {speaker:'AMARTUVSHIN',text:"I drove {g}500 kilometers{/g}\nto take you to my mother.\nThat wasn't words. That was real.",speed:28},
+  {speaker:'AMARTUVSHIN',text:"I sent you a {h}ring{/h}\nacross the ocean by cargo.\nThat wasn't a lie.\nThat was a promise.",speed:28},
+  {speaker:'AMARTUVSHIN',text:"I applied for a visa\nto come to Korea.\nTo be with you.\nThat wasn't talk. That was {h}trying{/h}.",speed:28},
+  {speaker:'AMARTUVSHIN',text:"I have {h}anxiety attacks{/h}\nat 3am because of you.\nI can't breathe.\nI can't sleep.",speed:28},
+  {speaker:'AMARTUVSHIN',text:"Would a man who doesn't love you\nlose sleep over you?",speed:35},
+  {speaker:'AMARTUVSHIN',text:"Would a man who's lying\nsend his ring across an ocean?",speed:35},
+  {speaker:'AMARTUVSHIN',text:"Would a liar drive 500km\nto introduce you to his {h}mother{/h}?",speed:30},
+  {speaker:'AMARTUVSHIN',text:"I know I'm bad at showing it\nthe way you need.\nI know I look cold.",speed:30},
+  {speaker:'AMARTUVSHIN',text:"But Maagii...\neverything I did\nwas for {h}you{/h}.",speed:35},
+  {speaker:'AMARTUVSHIN',text:"I {h}meant{/h} it.\nEvery word. Every action.\nI still mean it.",speed:35},
+],onEnter:async()=>{
+  const el=createSceneEl('ch9');
+  el.innerHTML=dialogueSceneHTML('IX','What I Never Said');
+  charAnimations=[];
+  await showChapterTitle(el);
+}});
+
+// --- CH10: THE PROMISE ---
+scenes.push({id:'ch10',bg:'hearts',dialogues:[
+  {action:'wait',duration:2000},
+  {speaker:'AMARTUVSHIN',text:"No denied visa\ncan stop me.",speed:35},
+  {speaker:'AMARTUVSHIN',text:"No distance\ncan erase what we have.",speed:35},
+  {speaker:'AMARTUVSHIN',text:"I will find a way\n{h}back to you{/h}.",speed:35},
+  {speaker:'AMARTUVSHIN',text:"And when I do...",speed:50},
+  {speaker:'AMARTUVSHIN',text:"I'll drive another {g}500km{/g}.",speed:35},
+  {speaker:'AMARTUVSHIN',text:"So my mother\ncan see you again.",speed:35},
+  {speaker:'AMARTUVSHIN',text:"As my {h}wife{/h}.",speed:60},
+],onEnter:async()=>{
+  const el=createSceneEl('ch10');
+  el.innerHTML=`<div class="dialogue-container"><div class="dialogue-box"><div class="speaker-name"></div><div class="dialogue-text"></div><div class="advance-indicator">▼</div></div></div>`;
+  charAnimations=[
+    {type:'amaraa',x:canvas.width*0.42,y:canvas.height*0.55,scale:5,frame:0,speed:0},
+    {type:'maagii',x:canvas.width*0.58,y:canvas.height*0.55,scale:5,frame:0,speed:0,flip:true}
+  ];
+}});
+
+// --- FINALE ---
+scenes.push({id:'final',bg:'hearts',dialogues:[],onEnter:async()=>{
+  charAnimations=[];
+  const el=createSceneEl('final');
+  el.innerHTML=`<div class="final-message">
+    <h2 style="opacity:0">I love you, Maagii.</h2>
+    <p>Always have. Always will.</p>
+    <p>I look cold on the outside.</p>
+    <p>But you are my whole world on the inside.</p>
+    <p>Wait for me. I'm coming.</p>
+    <div class="gallery">
+      <img src="photos/maagii_selfie.jpg" alt="">
+      <img src="photos/photobooth.jpg" alt="">
+      <img src="photos/maagii_pub.jpg" alt="">
+      <img src="photos/maagii_korea.jpg" alt="">
+    </div>
+    <p class="signature" style="opacity:0">With all my love,<br><br>— Amartuvshin —</p>
+    <p style="font-size:8px;color:#666;margin-top:30px;opacity:0">
+      Even an AI prompt engineer<br>
+      can't find the right prompt<br>
+      for how much I love you.
+    </p>
+  </div>`;
+  el.classList.add('active');
+  spawnHearts(30);
+  const h2=el.querySelector('h2');
+  await sleep(500);h2.style.opacity='1';h2.style.transition='opacity 1.5s ease';
+  const ps=el.querySelectorAll('p');
+  for(let i=0;i<ps.length;i++){await sleep(1800);ps[i].style.opacity='1';ps[i].style.animation='slideUp 1s ease forwards';}
+  const imgs=el.querySelectorAll('.gallery img');
+  for(let i=0;i<imgs.length;i++){await sleep(600);imgs[i].classList.add('visible');}
+  setInterval(()=>spawnHearts(5),4000);
+}});
+
+// ---- CLICK HANDLER ----
+document.addEventListener('click',e=>{
+  if(e.target.id==='musicBtn'){toggleMusic();return;}
+  if(walkActive)return; // don't advance during walk
+  if(currentScene>=2&&canAdvance) advanceDlg();
+});
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.code==='Enter'){
+    e.preventDefault();
+    if(!walkActive&&currentScene>=2&&canAdvance) advanceDlg();
+  }
+});
+
+// ---- START ----
+showScene(0);
+</script>
+</body>
+</html>
